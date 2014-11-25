@@ -7,7 +7,7 @@ import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.PatientIdentifier;
 import org.openmrs.api.OpenmrsService;
-import org.openmrs.module.openhie.client.Exception.HealthInformationExchangeException;
+import org.openmrs.module.openhie.client.exception.HealthInformationExchangeException;
 import org.openmrs.module.openhie.client.hie.model.DocumentInfo;
 
 /**
@@ -22,12 +22,27 @@ public interface HealthInformationExchangeService extends OpenmrsService {
 	 * @param patientSearchString
 	 * @return
 	 */
-	public List<Patient> searchPatient(String familyName, String givenName, Date dateOfBirth, boolean fuzzyDate, PatientIdentifier patientIdentifier, PatientIdentifier mothersIdentifier) throws HealthInformationExchangeException;
+	public List<Patient> searchPatient(String familyName, String givenName, Date dateOfBirth, boolean fuzzyDate, String gender, PatientIdentifier patientIdentifier, PatientIdentifier mothersIdentifier) throws HealthInformationExchangeException;
 	
 	/**
 	 * Searches for patients with the specified patient identity string 
 	 */
-	public List<Patient> searchPatient(String identifier, String assigningAuthority) throws HealthInformationExchangeException;
+	public Patient getPatient(String identifier, String assigningAuthority) throws HealthInformationExchangeException;
+	
+	/**
+	 * Resolve an HIE patient identifier 
+	 * @throws HealthInformationExchangeException 
+	 */
+	public PatientIdentifier resolvePatientIdentifier(Patient patient, String toAssigningAuthority) throws HealthInformationExchangeException;
+	
+	
+	/**
+	 * Import the specified patient data from the PDQ supplier
+	 * @param identifier
+	 * @param asigningAuthority
+	 * @return
+	 */
+	public Patient importPatient(Patient patient);
 	
 	/**
 	 * Export patient demographic record to the CR
@@ -56,5 +71,11 @@ public interface HealthInformationExchangeService extends OpenmrsService {
 	 * @return
 	 */
 	public DocumentInfo exportDocument(List<Encounter> encounters) throws HealthInformationExchangeException;
+
+	/**
+	 * Query for documents with the matching criteria
+	 */
+	public List<DocumentInfo> queryDocuments(Patient patientInfo, boolean oddOnly, Date sinceDate,
+			String formatCode, String formatCodingScheme);
 	
 }

@@ -23,4 +23,39 @@
   		    http://www.springframework.org/schema/util
   		    http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
+
+	
+	
+	<!-- Services accessible via Context.getService() -->
+	<bean parent="serviceContext">
+		<property name="moduleService">
+			<list>
+				<value>${project.parent.groupId}.openhie.client.api.HealthInformationExchangeService</value>
+				<bean
+					class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+					<property name="transactionManager">
+						<ref bean="transactionManager" />
+					</property>
+					<property name="target">
+						<bean class="${project.parent.groupId}.openhie.client.api.impl.HealthInformationExchangeServiceImpl">
+							<property name="dao">
+								<bean class="${project.parent.groupId}.openhie.client.dao.impl.HibernateHealthInformationExchangeDao">
+									<property name="sessionFactory">
+										<ref bean="sessionFactory" />
+									</property>
+								</bean>
+							</property>
+						</bean>
+					</property>
+					<property name="preInterceptors">
+						<ref bean="serviceInterceptors" />
+					</property>
+					<property name="transactionAttributeSource">
+						<ref bean="transactionAttributeSource" />
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+	
 </beans>

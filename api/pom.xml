@@ -51,19 +51,16 @@
 		<dependency>
 			<groupId>org.openmrs.module</groupId>
 			<artifactId>shr-cdahandler-api</artifactId>
-			<scope>provided</scope>
 			<version>0.5.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.openmrs.module</groupId>
 			<artifactId>shr-odd-api</artifactId>
-			<scope>provided</scope>
 			<version>0.5.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.openmrs.module</groupId>
 			<artifactId>shr-contenthandler-api</artifactId>
-			<scope>provided</scope>
 			<version>2.0.0</version>
 		</dependency>
 		<dependency>

@@ -15,7 +15,11 @@ package org.openmrs.module.openhie.client;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.GlobalProperty;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.ModuleActivator;
+import org.openmrs.module.openhie.client.configuration.HealthInformationExchangeConfiguration;
+import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfigurationFactory;
 
 /**
  * This class contains the logic that is run every time this module is either started or shutdown
@@ -43,6 +47,7 @@ public class HealthInformationExchangeClientActivator implements ModuleActivator
 	 * @see ModuleActivator#willStart()
 	 */
 	public void willStart() {
+		CdaHandlerConfigurationFactory.setConfigurationClassName(HealthInformationExchangeConfiguration.class.getName());
 		log.info("Starting HIE Interface Module");
 	}
 	

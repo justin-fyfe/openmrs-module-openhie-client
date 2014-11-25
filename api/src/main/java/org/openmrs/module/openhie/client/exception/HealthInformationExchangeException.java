@@ -1,4 +1,4 @@
-package org.openmrs.module.openhie.client.Exception;
+package org.openmrs.module.openhie.client.exception;
 
 
 /**
@@ -26,6 +26,14 @@ public class HealthInformationExchangeException extends Exception {
 	public HealthInformationExchangeException(Exception cause)
 	{
 		super(cause);
+	}
+
+	/**
+	 * Create health information exception
+	 * @param string
+	 */
+	public HealthInformationExchangeException(String message) {
+		super(message);
 	}
 	
 }
