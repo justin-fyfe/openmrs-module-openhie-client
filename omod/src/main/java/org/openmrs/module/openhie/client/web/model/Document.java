@@ -46,7 +46,7 @@ public final class Document {
 			Document retVal = new Document();
 			retVal.m_html = sw.toString();
 			retVal.applyFormatting();
-			log.info(retVal.m_html);
+			log.error(retVal.m_html);
 			return retVal;
 		} catch (TransformerException e) {
 			log.error(e);

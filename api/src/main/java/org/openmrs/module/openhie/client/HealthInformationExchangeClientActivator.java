@@ -15,11 +15,15 @@ package org.openmrs.module.openhie.client;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.openmrs.GlobalProperty;
-import org.openmrs.api.context.Context;
 import org.openmrs.module.ModuleActivator;
-import org.openmrs.module.openhie.client.configuration.HealthInformationExchangeConfiguration;
-import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfigurationFactory;
+import org.openmrs.module.shr.cdahandler.processor.document.impl.ihe.pcc.MedicalSummaryDocumentProcessor;
+import org.openmrs.module.shr.cdahandler.processor.entry.impl.ihe.pcc.ImmunizationEntryProcessor;
+import org.openmrs.module.shr.cdahandler.processor.entry.impl.ihe.pcc.MedicationsEntryProcessor;
+import org.openmrs.module.shr.cdahandler.processor.entry.impl.ihe.pcc.NormalDosingMedicationsEntryProcessor;
+import org.openmrs.module.shr.cdahandler.processor.entry.impl.ihe.pcc.TaperedDosingMedicationsEntryProcessor;
+import org.openmrs.module.shr.cdahandler.processor.factory.impl.ClasspathScannerUtil;
+import org.openmrs.module.shr.cdahandler.processor.section.impl.ihe.pcc.ImmunizationsSectionProcessor;
+import org.openmrs.module.shr.cdahandler.processor.section.impl.ihe.pcc.MedicationsSectionProcessor;
 
 /**
  * This class contains the logic that is run every time this module is either started or shutdown
@@ -47,7 +51,6 @@ public class HealthInformationExchangeClientActivator implements ModuleActivator
 	 * @see ModuleActivator#willStart()
 	 */
 	public void willStart() {
-		CdaHandlerConfigurationFactory.setConfigurationClassName(HealthInformationExchangeConfiguration.class.getName());
 		log.info("Starting HIE Interface Module");
 	}
 	
@@ -55,6 +58,14 @@ public class HealthInformationExchangeClientActivator implements ModuleActivator
 	 * @see ModuleActivator#started()
 	 */
 	public void started() {
+		ClasspathScannerUtil util = ClasspathScannerUtil.getInstance();
+		util.registerProcessor(ImmunizationsSectionProcessor.class);
+		util.registerProcessor(MedicationsSectionProcessor.class);
+		util.registerProcessor(ImmunizationEntryProcessor.class);
+		util.registerProcessor(MedicationsEntryProcessor.class);
+		util.registerProcessor(NormalDosingMedicationsEntryProcessor.class);
+		util.registerProcessor(TaperedDosingMedicationsEntryProcessor.class);
+		
 		log.info("HIE Interface Module started");
 	}
 	

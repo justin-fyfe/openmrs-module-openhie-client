@@ -1,39 +1,72 @@
 package org.openmrs.module.openhie.client.api.impl;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dcm4chee.xds2.common.XDSConstants;
+import org.dcm4chee.xds2.common.XDSUtil;
+import org.dcm4chee.xds2.infoset.ihe.ProvideAndRegisterDocumentSetRequestType;
+import org.dcm4chee.xds2.infoset.ihe.ProvideAndRegisterDocumentSetRequestType.Document;
+import org.dcm4chee.xds2.infoset.ihe.RetrieveDocumentSetRequestType;
+import org.dcm4chee.xds2.infoset.ihe.RetrieveDocumentSetResponseType;
+import org.dcm4chee.xds2.infoset.rim.AdhocQueryRequest;
+import org.dcm4chee.xds2.infoset.rim.AdhocQueryResponse;
+import org.dcm4chee.xds2.infoset.rim.AdhocQueryType;
+import org.dcm4chee.xds2.infoset.rim.AssociationType1;
+import org.dcm4chee.xds2.infoset.rim.ClassificationType;
+import org.dcm4chee.xds2.infoset.rim.ExtrinsicObjectType;
+import org.dcm4chee.xds2.infoset.rim.IdentifiableType;
+import org.dcm4chee.xds2.infoset.rim.InternationalStringType;
+import org.dcm4chee.xds2.infoset.rim.LocalizedStringType;
+import org.dcm4chee.xds2.infoset.rim.RegistryObjectListType;
+import org.dcm4chee.xds2.infoset.rim.RegistryPackageType;
+import org.dcm4chee.xds2.infoset.rim.RegistryResponseType;
+import org.dcm4chee.xds2.infoset.rim.ResponseOptionType;
+import org.dcm4chee.xds2.infoset.rim.SubmitObjectsRequest;
+import org.dcm4chee.xds2.infoset.util.DocumentRegistryPortTypeFactory;
+import org.dcm4chee.xds2.infoset.util.DocumentRepositoryPortTypeFactory;
+import org.dcm4chee.xds2.infoset.util.InfosetUtil;
+import org.dcm4chee.xds2.infoset.ws.registry.DocumentRegistryPortType;
+import org.dcm4chee.xds2.infoset.ws.repository.DocumentRepositoryPortType;
 import org.marc.everest.datatypes.II;
 import org.marc.everest.datatypes.TS;
+import org.marc.everest.datatypes.generic.CV;
 import org.openmrs.ImplementationId;
 import org.openmrs.Location;
+import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.PatientIdentifier;
 import org.openmrs.PatientIdentifierType;
 import org.openmrs.PersonAddress;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
 import org.openmrs.PersonName;
 import org.openmrs.Relationship;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.openhie.client.configuration.HealthInformationExchangeConfiguration;
-import org.openmrs.module.openhie.client.dao.HealthInformationExchangeDao;
+import org.openmrs.module.openhie.client.exception.HealthInformationExchangeException;
+import org.openmrs.module.openhie.client.hie.model.DocumentInfo;
 import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
-import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfigurationFactory;
+import org.openmrs.module.shr.odd.model.OnDemandDocumentEncounterLink;
+import org.openmrs.module.shr.odd.util.CdaDataUtil;
+import org.openmrs.module.shr.odd.util.XdsUtil;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.app.Connection;
 import ca.uhn.hl7v2.app.ConnectionHub;
 import ca.uhn.hl7v2.app.Initiator;
 import ca.uhn.hl7v2.llp.LLPException;
-import ca.uhn.hl7v2.llp.LowerLayerProtocol;
 import ca.uhn.hl7v2.llp.MinLowerLayerProtocol;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Group;
@@ -66,7 +99,7 @@ public final class MessageUtil {
 	
 	// Get the HIE config
 	private HealthInformationExchangeConfiguration m_configuration = HealthInformationExchangeConfiguration.getInstance();
-	private CdaHandlerConfiguration m_cdaConfiguration = CdaHandlerConfigurationFactory.getInstance();
+	private CdaHandlerConfiguration m_cdaConfiguration = CdaHandlerConfiguration.getInstance();
 	
 	/**
 	 * Creates a new message utility
@@ -95,7 +128,6 @@ public final class MessageUtil {
 	 */
 	public Message sendMessage(Message request, String endpoint, int port) throws HL7Exception, LLPException, IOException
 	{
-		LowerLayerProtocol llp = LowerLayerProtocol.makeLLP();
 		PipeParser parser = new PipeParser();
 		ConnectionHub hub = ConnectionHub.getInstance();
 		Connection connection = null;
@@ -161,7 +193,7 @@ public final class MessageUtil {
 		message.getMSH().getVersionID().getVersionID().setValue("2.3.1");
 		
 		// Move patient data to PID
-		this.updatePID(message.getPID(), patient);
+		this.updatePID(message.getPID(), patient, false);
 
 		return message;
 	}
@@ -170,7 +202,7 @@ public final class MessageUtil {
 	 * Update the PID segment
 	 * @throws HL7Exception 
 	 */
-	private void updatePID(PID pid, Patient patient) throws HL7Exception {
+	private void updatePID(PID pid, Patient patient, boolean localIdOnly) throws HL7Exception {
 
 		// Update the pid segment with data in the patient
 		
@@ -181,24 +213,26 @@ public final class MessageUtil {
 		pid.getPatientIdentifierList(0).getIdentifierTypeCode().setValue("PI");
 		
 		// Other identifiers
-		for(PatientIdentifier patIdentifier : patient.getIdentifiers())
-		{
-			CX patientId = pid.getPatientIdentifierList(pid.getPatientIdentifierList().length);
-			if(II.isRootOid(new II(patIdentifier.getIdentifierType().getName())))
+		if(!localIdOnly)
+			for(PatientIdentifier patIdentifier : patient.getIdentifiers())
 			{
-				patientId.getAssigningAuthority().getUniversalID().setValue(patIdentifier.getIdentifierType().getName());
-				patientId.getAssigningAuthority().getUniversalIDType().setValue("ISO");
+				CX patientId = pid.getPatientIdentifierList(pid.getPatientIdentifierList().length);
+				if(II.isRootOid(new II(patIdentifier.getIdentifierType().getName())))
+				{
+					patientId.getAssigningAuthority().getUniversalID().setValue(patIdentifier.getIdentifierType().getName());
+					patientId.getAssigningAuthority().getUniversalIDType().setValue("ISO");
+				}
+				else
+					patientId.getAssigningAuthority().getNamespaceID().setValue(patIdentifier.getIdentifierType().getName());
+	
+				patientId.getIDNumber().setValue(patIdentifier.getIdentifier());
+				patientId.getIdentifierTypeCode().setValue("PT");
 			}
-			else
-				patientId.getAssigningAuthority().getNamespaceID().setValue(patIdentifier.getIdentifierType().getName());
-
-			patientId.getIDNumber().setValue(patIdentifier.getIdentifier());
-			patientId.getIdentifierTypeCode().setValue("PT");
-		}
 
 		// Names
 		for(PersonName pn : patient.getNames())
-			this.updateXPN(pid.getPatientName(pid.getPatientName().length), pn);
+			if(!pn.getFamilyName().equals("(none)") && !pn.getGivenName().equals("(none)"))
+				this.updateXPN(pid.getPatientName(pid.getPatientName().length), pn);
 		
 		// Gender
 		pid.getAdministrativeSex().setValue(patient.getGender());
@@ -263,11 +297,11 @@ public final class MessageUtil {
 	 * @throws DataTypeException
 	 */
 	private void updateXPN(XPN xpn, PersonName pn) throws DataTypeException {
-		if(pn.getFamilyName() != null)
+		if(pn.getFamilyName() != null && !pn.getFamilyName().equals("(none)"))
 			xpn.getFamilyName().getSurname().setValue(pn.getFamilyName());
 		if(pn.getFamilyName2() != null)
 			xpn.getFamilyName().getSurnameFromPartnerSpouse().setValue(pn.getFamilyName2());
-		if(pn.getGivenName() != null)
+		if(pn.getGivenName() != null && !pn.getGivenName().equals("(none)"))
 			xpn.getGivenName().setValue(pn.getGivenName());
 		if(pn.getMiddleName() != null)
 			xpn.getSecondAndFurtherGivenNamesOrInitialsThereof().setValue(pn.getMiddleName());
@@ -309,7 +343,7 @@ public final class MessageUtil {
         if(defaultLocale != null)
 	        msh.getSendingFacility().getNamespaceID().setValue(defaultLocale.getName()); // You're at the college... right?
         else
-        	msh.getSendingApplication().getNamespaceID().setValue("UNNAMEDOPENMRS");
+        	msh.getSendingFacility().getNamespaceID().setValue("LOCATION");
 
         msh.getVersionID().getVersionID().setValue("2.5");
 	}
@@ -336,11 +370,18 @@ public final class MessageUtil {
 				// Attempt to load a patient by identifier
 				for(CX id : pid.getPatientIdentifierList())
 				{
-					PatientIdentifierType pit = Context.getPatientService().getPatientIdentifierType(id.getAssigningAuthority().getUniversalID().getValue());
-					if(pit == null) 
+					
+					PatientIdentifierType pit = null;
+					
+					if(id.getAssigningAuthority().getUniversalID().getValue() != null &&
+							!id.getAssigningAuthority().getUniversalID().getValue().isEmpty())
+							pit = Context.getPatientService().getPatientIdentifierTypeByName(id.getAssigningAuthority().getUniversalID().getValue());
+					if(pit == null && id.getAssigningAuthority().getNamespaceID().getValue() != null &&
+							!id.getAssigningAuthority().getNamespaceID().getValue().isEmpty()) 
 						pit = Context.getPatientService().getPatientIdentifierTypeByName(id.getAssigningAuthority().getNamespaceID().getValue());
 					if(pit == null)
 						continue;
+					
 					PatientIdentifier patId = new PatientIdentifier(
 							id.getIDNumber().getValue(),
 							pit,
@@ -358,9 +399,18 @@ public final class MessageUtil {
 				for(XPN xpn : pid.getPatientName())
 				{
 					PersonName pn = new PersonName();
-					pn.setFamilyName(xpn.getFamilyName().getSurname().getValue());
+					
+					if(xpn.getFamilyName().getSurname().getValue() == null || xpn.getFamilyName().getSurname().getValue().isEmpty())
+						pn.setFamilyName("(none)");
+					else
+						pn.setFamilyName(xpn.getFamilyName().getSurname().getValue());
 					pn.setFamilyName2(xpn.getFamilyName().getSurnameFromPartnerSpouse().getValue());
-					pn.setGivenName(xpn.getGivenName().getValue());
+					
+					// Given name
+					if(xpn.getGivenName().getValue() == null || xpn.getGivenName().getValue().isEmpty())
+						pn.setGivenName("(none)");
+					else
+						pn.setGivenName(xpn.getGivenName().getValue());
 					pn.setMiddleName(xpn.getSecondAndFurtherGivenNamesOrInitialsThereof().getValue());
 					pn.setPrefix(xpn.getPrefixEgDR().getValue());
 					
@@ -370,6 +420,8 @@ public final class MessageUtil {
 					patient.addName(pn);
 				}
 				
+				if(patient.getNames().size() == 0)
+					patient.addName(new PersonName("(none)", null, "(none)"));
 				// Copy gender
 				patient.setGender(pid.getAdministrativeSex().getValue());
 				// Copy DOB
@@ -407,6 +459,17 @@ public final class MessageUtil {
 					
 				}
 			
+				// Mother's name
+				XPN momsName = pid.getMotherSMaidenName(0);
+				if(momsName != null)
+				{
+					PersonAttributeType momNameAtt = Context.getPersonService().getPersonAttributeTypeByName("Mother's Name");
+					if(momNameAtt != null)
+					{
+						PersonAttribute pa = new PersonAttribute(momNameAtt, String.format("%s, %s", momsName.getFamilyName().getSurname().getValue(), momsName.getGivenName().getValue()));
+						patient.addAttribute(pa);
+					}
+				}
 				retVal.add(patient);
 			}
 		}
@@ -414,6 +477,38 @@ public final class MessageUtil {
 		return retVal;
 	}
 
+	/**
+	 * Create an xds query
+	 * @throws HealthInformationExchangeException 
+	 * @throws JAXBException 
+	 */
+	public AdhocQueryRequest createXdsQuery(Patient patient, String formatCode, Date since) throws HealthInformationExchangeException, JAXBException
+	{
+		AdhocQueryRequest retVal = new AdhocQueryRequest();
+		retVal.setResponseOption(new ResponseOptionType());
+		retVal.getResponseOption().setReturnComposedObjects(true);
+		retVal.getResponseOption().setReturnType("LeafClass");
+		retVal.setAdhocQuery(new AdhocQueryType());
+		retVal.getAdhocQuery().setId(XDSConstants.XDS_FindDocuments);
+		
+		// Find the ecid
+		String ecid = null;
+		for(PatientIdentifier id : patient.getIdentifiers())
+			if(id.getIdentifierType().getName().equals(this.m_cdaConfiguration.getEcidRoot()))
+				ecid = String.format("%s^^^&%s&ISO", id.getIdentifier(), id.getIdentifierType().getName());
+		
+		if(ecid == null)
+			throw new HealthInformationExchangeException("No enterprise identifier found in patient supplied");
+
+		InfosetUtil.addOrOverwriteSlot(retVal.getAdhocQuery(), XDSConstants.QRY_DOCUMENT_ENTRY_PATIENT_ID, String.format("'%s'",ecid));
+		InfosetUtil.addOrOverwriteSlot(retVal.getAdhocQuery(), XDSConstants.QRY_DOCUMENT_ENTRY_STATUS, String.format("'%s'", XDSConstants.STATUS_APPROVED));
+		if(formatCode != null)
+			InfosetUtil.addOrOverwriteSlot(retVal.getAdhocQuery(), XDSConstants.QRY_DOCUMENT_ENTRY_FORMAT_CODE, String.format("'%s'", formatCode));
+		if(since != null)
+			InfosetUtil.addOrOverwriteSlot(retVal.getAdhocQuery(), XDSConstants.QRY_DOCUMENT_ENTRY_CREATION_TIME_FROM, String.format("'%s'", new SimpleDateFormat("yyyyMMddHHmm").format(since)));
+		
+		return retVal;
+	}
 	/**
 	 * Create a PIX message
 	 * @throws HL7Exception 
@@ -438,6 +533,257 @@ public final class MessageUtil {
 			queryTerser.set("/QPD-4-4-1", toAssigningAuthority);
 		
 		return retVal;
+	}
+
+	/**
+	 * Create the update message
+	 * @throws HL7Exception 
+	 */
+	public Message createUpdate(Patient patient) throws HL7Exception {
+		ADT_A01 message = new ADT_A01();
+		this.updateMSH(message.getMSH(), "ADT", "A08");
+		message.getMSH().getVersionID().getVersionID().setValue("2.3.1");
+		//message.getMSH().getMessageType().getMessageStructure().setValue("ADT_A08");
+		
+		// Move patient data to PID
+		this.updatePID(message.getPID(), patient, true);
+		
+		return message;    
+	}
+
+	/**
+	 * Send the XDS query
+	 * @param createXdsQuery
+	 * @return
+	 * @throws HealthInformationExchangeException 
+	 */
+	public AdhocQueryResponse sendXdsQuery(AdhocQueryRequest xdsQuery) throws HealthInformationExchangeException {
+		
+		DocumentRegistryPortType port = DocumentRegistryPortTypeFactory.getDocumentRegistryPortSoap12(this.m_configuration.getXdsRegistryEndpoint());
+		try
+		{
+			return port.documentRegistryRegistryStoredQuery(xdsQuery);
+		}
+		catch(Exception e)
+		{
+			log.error(e);
+			throw new HealthInformationExchangeException(e);
+		}
+    }
+	
+	/**
+	 * Send the XDS query
+	 * @param createXdsQuery
+	 * @return
+	 * @throws HealthInformationExchangeException 
+	 */
+	public RetrieveDocumentSetResponseType sendRetrieve(RetrieveDocumentSetRequestType retrieveRequest) throws HealthInformationExchangeException {
+		
+		DocumentRepositoryPortType port = DocumentRepositoryPortTypeFactory.getDocumentRepositoryPortSoap12(this.m_configuration.getXdsRepositoryEndpoint());
+		try
+		{
+			return port.documentRepositoryRetrieveDocumentSet(retrieveRequest);
+		}
+		catch(Exception e)
+		{
+			log.error(e);
+			throw new HealthInformationExchangeException(e);
+		}
+    }
+	
+	
+	/**
+	 * Interpret the ad-hoc query response
+	 */
+	public List<DocumentInfo> interpretAdHocQueryResponse(AdhocQueryResponse response, Patient patient, boolean oddOnly)
+	{
+		List<DocumentInfo> retVal = new ArrayList<DocumentInfo>();
+		
+		for(JAXBElement<? extends IdentifiableType> jaxElement : response.getRegistryObjectList().getIdentifiable())
+		{
+			if(jaxElement.getValue() instanceof ExtrinsicObjectType)
+			{
+				ExtrinsicObjectType eo = (ExtrinsicObjectType)jaxElement.getValue();
+				if(oddOnly && !eo.getObjectType().equals("urn:uuid:34268e47-fdf5-41a6-ba33-82133c465248"))
+					continue;
+					
+				DocumentInfo docInfo = new DocumentInfo();
+				docInfo.setHash(InfosetUtil.getSlotValue(eo.getSlot(), XDSConstants.SLOT_NAME_HASH, "").getBytes());
+				docInfo.setRepositoryId(InfosetUtil.getSlotValue(eo.getSlot(), XDSConstants.SLOT_NAME_REPOSITORY_UNIQUE_ID, ""));
+				docInfo.setMimeType(eo.getMimeType());
+				docInfo.setPatient(patient);
+				if(eo.getName() != null &&
+						eo.getName().getLocalizedString() != null &&
+						eo.getName().getLocalizedString().size() > 0)
+					docInfo.setTitle(eo.getName().getLocalizedString().get(0).getValue());
+				docInfo.setUniqueId(InfosetUtil.getExternalIdentifierValue(XDSConstants.UUID_XDSDocumentEntry_uniqueId, eo));
+				
+				for(ClassificationType ct : eo.getClassification())
+					if(ct.getClassificationScheme().equals(XDSConstants.UUID_XDSDocumentEntry_classCode))
+						docInfo.setClassCode(ct.getNodeRepresentation());
+					else if(ct.getClassificationScheme().equals(XDSConstants.UUID_XDSDocumentEntry_formatCode))
+						docInfo.setFormatCode(ct.getNodeRepresentation());
+				retVal.add(docInfo);
+			}
+		}
+		
+		return retVal;
+	}
+
+	/**
+	 * Create a provide and register document msg
+	 * @throws JAXBException 
+	 */
+	public ProvideAndRegisterDocumentSetRequestType createProvdeAndRegisterDocument(byte[] documentContent, final DocumentInfo info) throws JAXBException {
+	    
+		ProvideAndRegisterDocumentSetRequestType retVal = new ProvideAndRegisterDocumentSetRequestType();
+		SubmitObjectsRequest registryRequest = new SubmitObjectsRequest();
+		retVal.setSubmitObjectsRequest(registryRequest);
+		
+		registryRequest.setRegistryObjectList(new RegistryObjectListType());
+		ExtrinsicObjectType oddRegistryObject = new ExtrinsicObjectType();
+		// ODD
+		oddRegistryObject.setId(String.format("Document%s", info.getRelatedEncounter().getId().toString()));
+		oddRegistryObject.setMimeType("text/xml");
+//		oddRegistryObject.setObjectType(XDSConstants.UUID_XDSDocumentEntry);
+		oddRegistryObject.setName(new InternationalStringType());
+		oddRegistryObject.getName().getLocalizedString().add(new LocalizedStringType());
+		oddRegistryObject.getName().getLocalizedString().get(0).setValue(info.getTitle());
+		
+		// Get the earliest time something occurred and the latest
+		Date lastEncounter = new Date(0),
+				firstEncounter = new Date();
+		for(Obs el : info.getRelatedEncounter().getObs())
+		{
+			if(el.getObsDatetime().before(firstEncounter))
+				firstEncounter = el.getEncounter().getVisit().getStartDatetime();
+			if(el.getObsDatetime().after(lastEncounter))
+				lastEncounter = el.getEncounter().getVisit().getStopDatetime();
+		}
+		
+		TS firstEncounterTs = CdaDataUtil.getInstance().createTS(firstEncounter),
+				lastEncounterTs = CdaDataUtil.getInstance().createTS(lastEncounter),
+				creationTimeTs = TS.now();
+		
+		firstEncounterTs.setDateValuePrecision(TS.MINUTENOTIMEZONE);
+		lastEncounterTs.setDateValuePrecision(TS.MINUTENOTIMEZONE);
+		InfosetUtil.addOrOverwriteSlot(oddRegistryObject, XDSConstants.SLOT_NAME_SERVICE_START_TIME, firstEncounterTs.getValue());
+		InfosetUtil.addOrOverwriteSlot(oddRegistryObject, XDSConstants.SLOT_NAME_SERVICE_STOP_TIME, lastEncounterTs.getValue());
+		
+		oddRegistryObject.setObjectType("urn:uuid:34268e47-fdf5-41a6-ba33-82133c465248");
+		
+		// Add source patient information
+		TS patientDob = CdaDataUtil.getInstance().createTS(info.getPatient().getBirthdate());
+		patientDob.setDateValuePrecision(TS.DAY);
+		InfosetUtil.addOrOverwriteSlot(oddRegistryObject, XDSConstants.SLOT_NAME_SOURCE_PATIENT_ID, String.format("%s^^^^&%s&ISO", info.getPatient().getId().toString(), this.m_cdaConfiguration.getPatientRoot()));
+		InfosetUtil.addOrOverwriteSlot(oddRegistryObject, XDSConstants.SLOT_NAME_SOURCE_PATIENT_INFO,
+			String.format("PID-3|%s", String.format("%s^^^^&%s&ISO", info.getPatient().getId().toString(), this.m_cdaConfiguration.getPatientRoot())),
+			String.format("PID-5|%s^%s^^^", info.getPatient().getFamilyName(), info.getPatient().getGivenName()),
+			String.format("PID-7|%s", patientDob.getValue()),
+			String.format("PID-8|%s", info.getPatient().getGender())
+			);
+		InfosetUtil.addOrOverwriteSlot(oddRegistryObject, XDSConstants.SLOT_NAME_LANGUAGE_CODE, Context.getLocale().toLanguageTag());
+		InfosetUtil.addOrOverwriteSlot(oddRegistryObject, XDSConstants.SLOT_NAME_CREATION_TIME, new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+		
+		// Unique identifier
+		XdsUtil.getInstance().addExtenalIdentifier(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_uniqueId, String.format("%s.%s", this.m_cdaConfiguration.getEncounterRoot(), info.getRelatedEncounter().getId()));
+		XdsUtil.getInstance().addExtenalIdentifier(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_patientId, XdsUtil.getInstance().getPatientIdentifier(info.getPatient()));
+		
+		// Set classifications
+		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_classCode, info.getClassCode(), "LOINC");
+		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_confidentialityCode, "1.3.6.1.4.1.21367.2006.7.101", "Connect-a-thon confidentialityCodes");
+		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_formatCode, info.getFormatCode(), "1.3.6.1.4.1.19376.1.2.3");
+		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_healthCareFacilityTypeCode, "Not Available", "Connect-a-thon healthcareFacilityTypeCodes");
+		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_practiceSettingCode, "Not Available", "Connect-a-thon practiceSettingCodes");
+		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_typeCode, info.getClassCode(), "LOINC");
+		
+		// Create the submission set
+		TS now = TS.now();
+		now.setDateValuePrecision(TS.SECONDNOTIMEZONE);
+		
+		RegistryPackageType regPackage = new RegistryPackageType();
+		regPackage.setId(String.format("SubmissionSet%s", info.getRelatedEncounter().getId().toString()));
+		InfosetUtil.addOrOverwriteSlot(regPackage, XDSConstants.SLOT_NAME_SUBMISSION_TIME, now.getValue());
+		regPackage.setName(oddRegistryObject.getName());
+		XdsUtil.getInstance().addCodedValueClassification(regPackage, XDSConstants.UUID_XDSSubmissionSet_contentTypeCode, info.getClassCode(), "LOINC");
+		
+		// Submission set external identifiers
+
+		XdsUtil.getInstance().addExtenalIdentifier(regPackage, XDSConstants.UUID_XDSSubmissionSet_uniqueId, this.m_cdaConfiguration.getEncounterRoot() + "." + info.getRelatedEncounter().getId().toString() + ".1." + now.getValue());
+		XdsUtil.getInstance().addExtenalIdentifier(regPackage, XDSConstants.UUID_XDSSubmissionSet_sourceId, this.m_cdaConfiguration.getEncounterRoot() + "." + info.getRelatedEncounter().getId().toString());
+		XdsUtil.getInstance().addExtenalIdentifier(regPackage, XDSConstants.UUID_XDSSubmissionSet_patientId, XdsUtil.getInstance().getPatientIdentifier(info.getPatient()));
+		
+		// Add the eo to the submission
+		registryRequest.getRegistryObjectList().getIdentifiable().add(
+			new JAXBElement<ExtrinsicObjectType>(
+					new QName("urn:oasis:names:tc:ebxml-regrep:xsd:rim:3.0","ExtrinsicObject"),
+					ExtrinsicObjectType.class,
+					oddRegistryObject
+				)
+			);
+		
+		// Add the package to the submission
+		registryRequest.getRegistryObjectList().getIdentifiable().add(
+			new JAXBElement<RegistryPackageType>(
+					new QName("urn:oasis:names:tc:ebxml-regrep:xsd:rim:3.0","RegistryPackage"),
+					RegistryPackageType.class,
+					regPackage
+				)
+			);
+		
+		// Add classification for the submission set
+		registryRequest.getRegistryObjectList().getIdentifiable().add(
+			new JAXBElement<ClassificationType>(
+					new QName("urn:oasis:names:tc:ebxml-regrep:xsd:rim:3.0", "Classification"), 
+					ClassificationType.class, 
+					new ClassificationType() {{
+						setId("cl01");
+						setClassifiedObject(String.format("SubmissionSet%s", info.getRelatedEncounter().getId().toString()));
+						setClassificationNode(XDSConstants.UUID_XDSSubmissionSet);
+					}}
+				)
+			);
+		
+		// Add an association
+		AssociationType1 association = 	new AssociationType1();
+		association.setId("as01");
+		association.setAssociationType("HasMember");
+		association.setSourceObject(String.format("SubmissionSet%s", info.getRelatedEncounter().getId().toString()));
+		association.setTargetObject(String.format("Document%s", info.getRelatedEncounter().getId().toString()));
+		InfosetUtil.addOrOverwriteSlot(association, XDSConstants.SLOT_NAME_SUBMISSIONSET_STATUS, "Original");
+		registryRequest.getRegistryObjectList().getIdentifiable().add(
+			new JAXBElement<AssociationType1>(
+					new QName("urn:oasis:names:tc:ebxml-regrep:xsd:rim:3.0", "Association"), 
+					AssociationType1.class, 
+					association)
+			);
+
+		Document doc = new Document();
+		doc.setId(oddRegistryObject.getId());
+		doc.setValue(documentContent);
+		retVal.getDocument().add(doc);
+		return retVal;
+    }
+
+	/**
+	 * Provide and register
+	 * Auto generated method comment
+	 * 
+	 * @param request
+	 * @return 
+	 * @throws HealthInformationExchangeException 
+	 */
+	public RegistryResponseType sendProvideAndRegister(ProvideAndRegisterDocumentSetRequestType request) throws HealthInformationExchangeException {
+		DocumentRepositoryPortType port = DocumentRepositoryPortTypeFactory.getDocumentRepositoryPortSoap12(this.m_configuration.getXdsRepositoryEndpoint());
+		try
+		{
+			return port.documentRepositoryProvideAndRegisterDocumentSetB(request);
+		}
+		catch(Exception e)
+		{
+			log.error(e);
+			throw new HealthInformationExchangeException(e);
+		}
 	}
 	
 }

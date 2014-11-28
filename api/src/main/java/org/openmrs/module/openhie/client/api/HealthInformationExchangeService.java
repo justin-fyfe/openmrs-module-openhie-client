@@ -41,14 +41,27 @@ public interface HealthInformationExchangeService extends OpenmrsService {
 	 * @param identifier
 	 * @param asigningAuthority
 	 * @return
+	 * @throws HealthInformationExchangeException 
 	 */
-	public Patient importPatient(Patient patient);
+	public Patient importPatient(Patient patient) throws HealthInformationExchangeException;
+	
+	/**
+	 * Matches an external patient with an internal 
+	 */
+	public Patient matchWithExistingPatient(Patient remotePatient);
 	
 	/**
 	 * Export patient demographic record to the CR
 	 * @param patient
 	 */
 	public void exportPatient(Patient patient) throws HealthInformationExchangeException;
+
+	/**
+	 * Export patient demographic record to the CR
+	 * @param patient
+	 */
+	public void updatePatient(Patient patient) throws HealthInformationExchangeException;
+
 	
 	/**
 	 * Get all HIE documents for the specified patient
@@ -70,12 +83,14 @@ public interface HealthInformationExchangeService extends OpenmrsService {
 	 * @param encounters
 	 * @return
 	 */
-	public DocumentInfo exportDocument(List<Encounter> encounters) throws HealthInformationExchangeException;
+	public DocumentInfo exportDocument(byte[] documentContent, DocumentInfo info) throws HealthInformationExchangeException;
 
 	/**
 	 * Query for documents with the matching criteria
+	 * @throws HealthInformationExchangeException 
 	 */
 	public List<DocumentInfo> queryDocuments(Patient patientInfo, boolean oddOnly, Date sinceDate,
-			String formatCode, String formatCodingScheme);
+			String formatCode, String formatCodingScheme) throws HealthInformationExchangeException;
+
 	
 }

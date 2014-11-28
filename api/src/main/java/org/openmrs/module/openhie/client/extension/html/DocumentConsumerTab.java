@@ -15,7 +15,7 @@ public class DocumentConsumerTab extends PatientDashboardTabExt {
 	 */
 	@Override
 	public String getPortletUrl() {
-		return "documentConsumer";
+		return "hieDocumentConsumer";
 	}
 
 	/**
@@ -31,7 +31,7 @@ public class DocumentConsumerTab extends PatientDashboardTabExt {
 	 */
 	@Override
 	public String getTabId() {
-		return "documentConsumer";
+		return "hieDocumentConsumer";
 	}
 
 	/**

@@ -28,5 +28,16 @@
 	
 	<context:component-scan base-package="org.openmrs.module.openhie.client.web.controller" />
  
-		
+	 <bean id="portletMappings" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+	 	<property name="order"><value>1</value></property>
+	 	<property name="mappings">
+	 		<props>
+	 			<prop key="**/hieDocumentConsumer.portlet">hieDocumentConsumerController</prop>
+	 			<prop key="**/vaccinationTab.portlet">vaccinationTabController</prop>
+	 		</props>
+	 	</property>
+	 </bean>
+			
+	<bean id="hieDocumentConsumerController" class="org.openmrs.module.openhie.client.web.controller.HieDocumentConsumerController"/>
+	<bean id="vaccinationTabController" class="org.openmrs.module.openhie.client.web.controller.VaccinationTabController"/>
 </beans>

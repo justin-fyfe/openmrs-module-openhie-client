@@ -1,17 +1,32 @@
 package org.openmrs.module.openhie.client.api.impl;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dcm4chee.xds2.infoset.ihe.ProvideAndRegisterDocumentSetRequestType;
+import org.dcm4chee.xds2.infoset.ihe.RetrieveDocumentSetRequestType;
+import org.dcm4chee.xds2.infoset.ihe.RetrieveDocumentSetRequestType.DocumentRequest;
+import org.dcm4chee.xds2.infoset.ihe.RetrieveDocumentSetResponseType;
+import org.dcm4chee.xds2.infoset.rim.AdhocQueryResponse;
+import org.dcm4chee.xds2.infoset.rim.RegistryResponseType;
 import org.marc.everest.datatypes.II;
+import org.marc.everest.formatters.interfaces.IXmlStructureFormatter;
+import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.ClinicalDocument;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.PatientIdentifier;
+import org.openmrs.PersonAddress;
+import org.openmrs.PersonName;
+import org.openmrs.Visit;
 import org.openmrs.api.DuplicateIdentifierException;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
@@ -20,10 +35,16 @@ import org.openmrs.module.openhie.client.configuration.HealthInformationExchange
 import org.openmrs.module.openhie.client.dao.HealthInformationExchangeDao;
 import org.openmrs.module.openhie.client.exception.HealthInformationExchangeException;
 import org.openmrs.module.openhie.client.hie.model.DocumentInfo;
+import org.openmrs.module.shr.cdahandler.CdaImporter;
 import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
-import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfigurationFactory;
+import org.openmrs.module.shr.cdahandler.everest.EverestUtil;
+import org.openmrs.module.shr.odd.generator.document.impl.CcdGenerator;
+import org.openmrs.module.shr.odd.model.OnDemandDocumentEncounterLink;
+import org.openmrs.module.shr.odd.model.OnDemandDocumentRegistration;
+import org.openmrs.module.shr.odd.model.OnDemandDocumentType;
 
 import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.util.Terser;
 
 /**
  * Implementation of the health information exchange service
@@ -40,7 +61,7 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 	// Get health information exchange information
 	private HealthInformationExchangeConfiguration m_configuration = HealthInformationExchangeConfiguration.getInstance();
 	// Get CDA handler configruation
-	private CdaHandlerConfiguration m_cdaConfiguration = CdaHandlerConfigurationFactory.getInstance();
+	private CdaHandlerConfiguration m_cdaConfiguration = CdaHandlerConfiguration.getInstance();
 	
 	// DAO
 	private HealthInformationExchangeDao dao;
@@ -69,7 +90,7 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 		if(dateOfBirth != null)
 		{
 			if(fuzzyDate)
-				queryParams.put("@PID.7", String.format("%s", dateOfBirth.getYear()));
+				queryParams.put("@PID.7", new SimpleDateFormat("yyyy").format(dateOfBirth));
 			else
 				queryParams.put("@PID.7", new SimpleDateFormat("yyyyMMdd").format(dateOfBirth));
 		}
@@ -113,6 +134,9 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 			Message pdqRequest = this.m_messageUtil.createPdqMessage(queryParams),
 					response = this.m_messageUtil.sendMessage(pdqRequest, this.m_configuration.getPdqEndpoint(), this.m_configuration.getPdqPort());
 			
+			Terser terser = new Terser(response);
+			if(!terser.get("/MSA-1").endsWith("A"))
+				throw new HealthInformationExchangeException("Error querying data");
 			return this.m_messageUtil.interpretPIDSegments(response);
 		}
 		catch(Exception e)
@@ -158,29 +182,58 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 	 * Import the patient from the PDQ supplier
 	 * @throws HealthInformationExchangeException 
 	 */
-	public Patient importPatient(Patient patient) 
+	public Patient importPatient(Patient patient) throws HealthInformationExchangeException 
 	{
-		Patient existingPatientRecord = null;
-		
-		// Does this patient have an identifier from our assigning authority?
-		for(PatientIdentifier pid : patient.getIdentifiers())
-			if(pid.getIdentifierType().getName().equals(this.m_cdaConfiguration.getPatientRoot()))
-				existingPatientRecord = Context.getPatientService().getPatient(Integer.parseInt(pid.getIdentifier()));
-		
-		// This patient may be an existing patient, so we just don't want to add it!
-		if(existingPatientRecord != null)
-			for(PatientIdentifier pid : patient.getIdentifiers())
-			{
-				existingPatientRecord = this.dao.getPatientByIdentifier(pid.getIdentifier(), pid.getIdentifierType());
-				if(patient != null)
-					break;
-			}
+		Patient existingPatientRecord = this.matchWithExistingPatient(patient);
 		
 		// Existing? Then update this from that
 		if(existingPatientRecord != null)
-			patient.setId(existingPatientRecord.getId());
-		
-		return Context.getPatientService().savePatient(patient);
+		{
+			
+			// Add new identifiers
+			for(PatientIdentifier id : patient.getIdentifiers())
+			{
+				boolean hasId = false;
+				for(PatientIdentifier eid : existingPatientRecord.getIdentifiers())
+					hasId |= eid.getIdentifier().equals(id.getIdentifier()) && eid.getIdentifierType().getId().equals(id.getIdentifierType().getId());
+				if(!hasId)
+					existingPatientRecord.getIdentifiers().add(id);
+			}
+			
+			// update names
+			existingPatientRecord.getNames().clear();
+			for(PersonName name : patient.getNames())
+				existingPatientRecord.addName(name);
+			// update addr
+			existingPatientRecord.getAddresses().clear();
+			for(PersonAddress addr : patient.getAddresses())
+				existingPatientRecord.addAddress(addr);
+			
+			// Update deceased
+			existingPatientRecord.setDead(patient.getDead());
+			existingPatientRecord.setDeathDate(patient.getDeathDate());
+			existingPatientRecord.setBirthdate(patient.getBirthdate());
+			existingPatientRecord.setBirthdateEstimated(patient.getBirthdateEstimated());
+			existingPatientRecord.setGender(patient.getGender());
+			patient = existingPatientRecord;
+		}
+		else
+		{
+			boolean isPreferred = false;
+			for(PatientIdentifier id : patient.getIdentifiers())
+				if(id.getIdentifierType().getName().equals(this.m_cdaConfiguration.getEcidRoot()))
+				{
+					id.setPreferred(true);
+					isPreferred = true;
+				}
+			
+			if(!isPreferred)
+				patient.getIdentifiers().iterator().next().setPreferred(true);
+		}
+		Patient importedPatient = Context.getPatientService().savePatient(patient);
+		// Now notify
+		this.exportPatient(importedPatient);
+		return importedPatient;
 	}
 	
 	/**
@@ -193,34 +246,95 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 
 	/**
 	 * Fetch a document from the XDS repository endpoint
+	 * @throws HealthInformationExchangeException 
 	 */
-	public byte[] fetchDocument(DocumentInfo document) {
-		// TODO Auto-generated method stub
-		return null;
+	public byte[] fetchDocument(DocumentInfo document) throws HealthInformationExchangeException {
+		try
+		{
+			RetrieveDocumentSetRequestType request = new RetrieveDocumentSetRequestType();
+			DocumentRequest di = new DocumentRequest();
+			di.setDocumentUniqueId(document.getUniqueId());
+			di.setRepositoryUniqueId(document.getRepositoryId());
+			request.getDocumentRequest().add(di);
+			
+			RetrieveDocumentSetResponseType response = this.m_messageUtil.sendRetrieve(request);
+			if(response.getDocumentResponse().size() == 0)
+				throw new HealthInformationExchangeException("No results returned");
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			response.getDocumentResponse().get(0).getDocument().writeTo(bos);
+			return bos.toByteArray();
+		}
+		catch(Exception e)
+		{
+			throw new HealthInformationExchangeException(e);
+		}
 	}
 
 	/**
 	 * Import a document into the OpenMRS datastore
+	 * @throws HealthInformationExchangeException 
 	 */
-	public Encounter importDocument(DocumentInfo document) {
-		// TODO Auto-generated method stub
-		return null;
+	public Encounter importDocument(DocumentInfo document) throws HealthInformationExchangeException {
+		
+		try
+		{
+		CdaImporter importer = CdaImporter.getInstance();
+		// Parse the byte stream into a CLinical Document
+		IXmlStructureFormatter formatter = EverestUtil.createFormatter();
+		
+		byte[] documentContent = this.fetchDocument(document);
+
+		ByteArrayInputStream bis = new ByteArrayInputStream(documentContent);
+		Visit visit = importer.processCdaDocument((ClinicalDocument)formatter.parse(bis).getStructure());
+		return visit.getEncounters().iterator().next();
+		}
+		catch(Exception e)
+		{
+			throw new HealthInformationExchangeException(e);
+		}
 	}
 
 	/**
 	 * Export encounters as a document
+	 * @throws HealthInformationExchangeException 
 	 */
-	public DocumentInfo exportDocument(List<Encounter> encounters) {
-		// TODO Auto-generated method stub
-		return null;
+	public DocumentInfo exportDocument(byte[] documentContent, DocumentInfo info) throws HealthInformationExchangeException {
+		try
+		{
+			ProvideAndRegisterDocumentSetRequestType request = this.m_messageUtil.createProvdeAndRegisterDocument(documentContent, info);
+			RegistryResponseType response = this.m_messageUtil.sendProvideAndRegister(request);
+			if(!response.getStatus().contains("Success"))
+				throw new Exception("Could not execute provide and register");
+			return info;
+		}
+		catch(Exception e)
+		{
+			throw new HealthInformationExchangeException(e);
+		}
 	}
 
 	/**
 	 * Export a patient to the HIE
+	 * @throws HealthInformationExchangeException 
 	 */
-	public void exportPatient(Patient patient) {
+	public void exportPatient(Patient patient) throws HealthInformationExchangeException {
 		// TODO Auto-generated method stub
 		
+		try
+		{
+			Message admitMessage = this.m_messageUtil.createAdmit(patient),
+					response = this.m_messageUtil.sendMessage(admitMessage, this.m_configuration.getPixEndpoint(), this.m_configuration.getPixPort());
+			
+			Terser terser = new Terser(response);
+			if(!terser.get("/MSA-1").endsWith("A"))
+				throw new HealthInformationExchangeException("Error querying data");
+
+		}
+		catch(Exception e)
+		{
+			log.error(e);
+			throw new HealthInformationExchangeException(e);
+		}
 	}
 
 	/**
@@ -250,12 +364,77 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 
 	/**
 	 * Query for documents matching the specified criteria
+	 * @throws HealthInformationExchangeException 
 	 */
 	public List<DocumentInfo> queryDocuments(Patient patientInfo,
 			boolean oddOnly, Date sinceDate, String formatCode,
-			String formatCodingScheme) {
-		// TODO Auto-generated method stub
-		return null;
+			String formatCodingScheme) throws HealthInformationExchangeException {
+
+		// Get documents
+		try
+		{
+			// Format code
+			String fmtCode = null;
+			if(formatCode != null && formatCodingScheme != null)
+				fmtCode = String.format("%s^^%s", formatCode, formatCodingScheme);
+			
+			AdhocQueryResponse queryResponse = this.m_messageUtil.sendXdsQuery(this.m_messageUtil.createXdsQuery(patientInfo, fmtCode, sinceDate));
+			return this.m_messageUtil.interpretAdHocQueryResponse(queryResponse, patientInfo, oddOnly);
+		}
+		catch(Exception e)
+		{
+			throw new HealthInformationExchangeException(e);
+		}
+		
 	}
+
+	/**
+	 * Match an external patient with internal patient
+	 * @see org.openmrs.module.openhie.client.api.HealthInformationExchangeService#matchWithExistingPatient(org.openmrs.Patient)
+	 */
+	public Patient matchWithExistingPatient(Patient remotePatient) {
+		Patient candidate = null;
+		// Does this patient have an identifier from our assigning authority?
+		for(PatientIdentifier pid : remotePatient.getIdentifiers())
+			if(pid.getIdentifierType().getName().equals(this.m_cdaConfiguration.getPatientRoot()))
+				candidate = Context.getPatientService().getPatient(Integer.parseInt(pid.getIdentifier()));
+		
+		// This patient may be an existing patient, so we just don't want to add it!
+		if(candidate == null)
+			for(PatientIdentifier pid : remotePatient.getIdentifiers())
+			{
+				candidate = this.dao.getPatientByIdentifier(pid.getIdentifier(), pid.getIdentifierType());
+				if(candidate != null)
+					break;
+			}
+		
+		return candidate;
+    }
+
+	/**
+	 * Update the patient record
+	 * @see org.openmrs.module.openhie.client.api.HealthInformationExchangeService#updatePatient(org.openmrs.Patient)
+	 */
+	public void updatePatient(Patient patient) throws HealthInformationExchangeException {
+		
+		// TODO Auto-generated method stub
+		
+				try
+				{
+					Message admitMessage = this.m_messageUtil.createUpdate(patient),
+							response = this.m_messageUtil.sendMessage(admitMessage, this.m_configuration.getPixEndpoint(), this.m_configuration.getPixPort());
+					
+					Terser terser = new Terser(response);
+					if(!terser.get("/MSA-1").endsWith("A"))
+						throw new HealthInformationExchangeException("Error querying data");
+
+				}
+				catch(Exception e)
+				{
+					log.error(e);
+					throw new HealthInformationExchangeException(e);
+				}		
+		
+    }
 
 }

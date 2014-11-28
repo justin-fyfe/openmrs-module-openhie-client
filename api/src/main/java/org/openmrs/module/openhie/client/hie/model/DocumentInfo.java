@@ -25,7 +25,44 @@ public class DocumentInfo {
 	private Encounter relatedEncounter;
 	// authors
 	private List<String> authorDisplayNames;
+	// Unique id
+	private String uniqueId;
+	// Repository id
+	private String repositoryId;
+	// Format code
+	private String formatCode;
+	// Class code
+	private String classCode;
 	
+    
+    /**
+     * @return the repositoryId
+     */
+    public String getRepositoryId() {
+    	return repositoryId;
+    }
+
+	
+    /**
+     * @param repositoryId the repositoryId to set
+     */
+    public void setRepositoryId(String repositoryId) {
+    	this.repositoryId = repositoryId;
+    }
+
+	/**
+     * @return the uniqueId
+     */
+    public String getUniqueId() {
+    	return uniqueId;
+    }
+	
+    /**
+     * @param uniqueId the uniqueId to set
+     */
+    public void setUniqueId(String uniqueId) {
+    	this.uniqueId = uniqueId;
+    }
 	/**
 	 * @return the patient
 	 */
@@ -98,4 +135,41 @@ public class DocumentInfo {
 	public void setAuthorDisplayNames(List<String> authorDisplayNames) {
 		this.authorDisplayNames = authorDisplayNames;
 	}
+
+
+	
+    /**
+     * @return the formatCode
+     */
+    public String getFormatCode() {
+    	return formatCode;
+    }
+
+
+	
+    /**
+     * @param formatCode the formatCode to set
+     */
+    public void setFormatCode(String formatCode) {
+    	this.formatCode = formatCode;
+    }
+
+
+	
+    /**
+     * @return the classCode
+     */
+    public String getClassCode() {
+    	return classCode;
+    }
+
+
+	
+    /**
+     * @param classCode the classCode to set
+     */
+    public void setClassCode(String classCode) {
+    	this.classCode = classCode;
+    }
+	
 }

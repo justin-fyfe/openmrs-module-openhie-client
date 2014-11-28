@@ -31,7 +31,7 @@ public class HealthInformationExchangeLink extends LinkExt {
 	 */
 	@Override
 	public String getUrl() {
-		return "module/openhie-client/findPatient.form";
+		return "module/openhie-client/hieFindPatient.form";
 	}
 
 }
