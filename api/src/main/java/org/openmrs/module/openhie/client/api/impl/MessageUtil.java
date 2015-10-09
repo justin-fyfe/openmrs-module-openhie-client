@@ -451,8 +451,8 @@ public final class MessageUtil {
 					pa.setCountry(xad.getCountry().getValue());
 					pa.setCountyDistrict(xad.getCountyParishCode().getValue());
 					pa.setPostalCode(xad.getZipOrPostalCode().getValue());
-	
-					if("L".equals(xad.getAddressType().getValue()))
+					pa.setStateProvince(xad.getStateOrProvince().getValue());
+					if("H".equals(xad.getAddressType().getValue()))
 						pa.setPreferred(true);
 					
 					patient.addAddress(pa);
@@ -686,16 +686,16 @@ public final class MessageUtil {
 		InfosetUtil.addOrOverwriteSlot(oddRegistryObject, XDSConstants.SLOT_NAME_CREATION_TIME, new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
 		
 		// Unique identifier
-		XdsUtil.getInstance().addExtenalIdentifier(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_uniqueId, String.format("%s.%s", this.m_cdaConfiguration.getEncounterRoot(), info.getRelatedEncounter().getId()));
-		XdsUtil.getInstance().addExtenalIdentifier(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_patientId, XdsUtil.getInstance().getPatientIdentifier(info.getPatient()));
+		XdsUtil.getInstance().addExtenalIdentifier(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_uniqueId, String.format("%s.%s", this.m_cdaConfiguration.getEncounterRoot(), info.getRelatedEncounter().getId()), "XDSDocumentEntry.uniqueId");
+		XdsUtil.getInstance().addExtenalIdentifier(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_patientId, XdsUtil.getInstance().getPatientIdentifier(info.getPatient()), "XDSDocumentEntry.patientId");
 		
 		// Set classifications
-		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_classCode, info.getClassCode(), "LOINC");
-		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_confidentialityCode, "1.3.6.1.4.1.21367.2006.7.101", "Connect-a-thon confidentialityCodes");
-		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_formatCode, info.getFormatCode(), "1.3.6.1.4.1.19376.1.2.3");
-		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_healthCareFacilityTypeCode, "Not Available", "Connect-a-thon healthcareFacilityTypeCodes");
-		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_practiceSettingCode, "Not Available", "Connect-a-thon practiceSettingCodes");
-		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_typeCode, info.getClassCode(), "LOINC");
+		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_classCode, info.getClassCode(), "LOINC", "XDSDocumentEntry.classCode");
+		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_confidentialityCode, "1.3.6.1.4.1.21367.2006.7.101", "Connect-a-thon confidentialityCodes", "XDSDocumentEntry.confidentialityCode");
+		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_formatCode, info.getFormatCode(), "1.3.6.1.4.1.19376.1.2.3", "XDSDocumentEntry.formatCode");
+		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_healthCareFacilityTypeCode, "Not Available", "Connect-a-thon healthcareFacilityTypeCodes", "XDSDocumentEntry.healthCareFacilityTypeCode");
+		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_practiceSettingCode, "Not Available", "Connect-a-thon practiceSettingCodes", "UUID_XDSDocumentEntry.practiceSettingCode");
+		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_typeCode, info.getClassCode(), "LOINC", "XDSDocumentEntry.typeCode");
 		
 		// Create the submission set
 		TS now = TS.now();
@@ -705,13 +705,13 @@ public final class MessageUtil {
 		regPackage.setId(String.format("SubmissionSet%s", info.getRelatedEncounter().getId().toString()));
 		InfosetUtil.addOrOverwriteSlot(regPackage, XDSConstants.SLOT_NAME_SUBMISSION_TIME, now.getValue());
 		regPackage.setName(oddRegistryObject.getName());
-		XdsUtil.getInstance().addCodedValueClassification(regPackage, XDSConstants.UUID_XDSSubmissionSet_contentTypeCode, info.getClassCode(), "LOINC");
+		XdsUtil.getInstance().addCodedValueClassification(regPackage, XDSConstants.UUID_XDSSubmissionSet_contentTypeCode, info.getClassCode(), "LOINC", "XDSSubmissionSet.contentTypeCode");
 		
 		// Submission set external identifiers
 
-		XdsUtil.getInstance().addExtenalIdentifier(regPackage, XDSConstants.UUID_XDSSubmissionSet_uniqueId, this.m_cdaConfiguration.getEncounterRoot() + "." + info.getRelatedEncounter().getId().toString() + ".1." + now.getValue());
-		XdsUtil.getInstance().addExtenalIdentifier(regPackage, XDSConstants.UUID_XDSSubmissionSet_sourceId, this.m_cdaConfiguration.getEncounterRoot() + "." + info.getRelatedEncounter().getId().toString());
-		XdsUtil.getInstance().addExtenalIdentifier(regPackage, XDSConstants.UUID_XDSSubmissionSet_patientId, XdsUtil.getInstance().getPatientIdentifier(info.getPatient()));
+		XdsUtil.getInstance().addExtenalIdentifier(regPackage, XDSConstants.UUID_XDSSubmissionSet_uniqueId, this.m_cdaConfiguration.getEncounterRoot() + "." + info.getRelatedEncounter().getId().toString() + ".1." + now.getValue(), "XDSSubmissionSet.uniqueId");
+		XdsUtil.getInstance().addExtenalIdentifier(regPackage, XDSConstants.UUID_XDSSubmissionSet_sourceId, this.m_cdaConfiguration.getEncounterRoot() + "." + info.getRelatedEncounter().getId().toString(), "XDSSubmissionSet.sourceId");
+		XdsUtil.getInstance().addExtenalIdentifier(regPackage, XDSConstants.UUID_XDSSubmissionSet_patientId, XdsUtil.getInstance().getPatientIdentifier(info.getPatient()), "XDSSubmissionSet.patientId");
 		
 		// Add the eo to the submission
 		registryRequest.getRegistryObjectList().getIdentifiable().add(

@@ -1,0 +1,70 @@
+div.cda > a {
+  color: #003366;
+  background-color: #FFFFFF;
+}
+
+div.cda > h1 {
+  font-size: 12pt;
+  font-weight: bold;
+}
+
+div.cda > h2 {
+  font-size: 11pt;
+  font-weight: bold;
+}
+
+div.cda > h3 {
+  font-size: 10pt;
+  font-weight: bold;
+}
+
+div.cda > h4 {
+  font-size: 8pt;
+  font-weight: bold;
+}
+
+div.cda > div {
+  width: 80%;
+}
+
+div.cda > table {
+  line-height: 10pt;
+  width: 80%;
+}
+
+div.cda > tr {
+  background-color: #ccccff;
+}
+
+div.cda > td {
+  padding: 0.1cm 0.2cm;
+  vertical-align: top;
+}
+
+div.cda > .h1center {
+  font-size: 12pt;
+  font-weight: bold;
+  text-align: center;
+  width: 80%;
+}
+
+div.cda > .header_table{
+  border: 1pt inset #00008b;
+}
+
+div.cda > .narr_table {
+  width: 100%;
+}
+
+div.cda > .narr_tr {
+  background-color: #ffffcc;
+}
+
+div.cda > .narr_th {
+  background-color: #ffd700;
+}
+
+div.cda > .td_label{
+  font-weight: bold;
+  color: white;
+}
