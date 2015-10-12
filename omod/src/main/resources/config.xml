@@ -35,10 +35,10 @@
 		<point>org.openmrs.patientDashboardTab</point>
 		<class>${project.parent.groupId}.openhie.client.extension.html.DocumentConsumerTab</class>
 	</extension>
-	<extension>
+<!-- 	<extension>
 		<point>org.openmrs.patientDashboardTab</point>
 		<class>${project.parent.groupId}.openhie.client.extension.html.VaccinationInformationTab</class>
-	</extension>
+	</extension>-->
 	<extension>
 		<point>org.openmrs.gutter.tools</point>
 		<class>${project.parent.groupId}.openhie.client.extension.html.HealthInformationExchangeLink</class>

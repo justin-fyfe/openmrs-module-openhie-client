@@ -38,10 +38,14 @@ public class PatientUpdateAdvice implements AfterReturningAdvice {
 				for(PatientIdentifier pid : patient.getIdentifiers())
 					hasEcid |= pid.getIdentifierType().getName().equals(this.m_configuration.getEcidRoot());
 						
+				HealthInformationExchangeService hieService = Context.getService(HealthInformationExchangeService.class);
 				if(hasEcid)
-				{
-					HealthInformationExchangeService hieService = Context.getService(HealthInformationExchangeService.class);
 					hieService.updatePatient(patient);
+				else
+				{
+					hieService.exportPatient(patient);
+					PatientIdentifier pid = hieService.resolvePatientIdentifier(patient, this.m_configuration.getEcidRoot());
+					patient.addIdentifier(pid);
 				}
 			}
 			catch(HealthInformationExchangeException e)

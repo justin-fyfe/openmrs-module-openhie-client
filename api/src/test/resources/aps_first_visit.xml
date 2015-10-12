@@ -1,0 +1,453 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClinicalDocument xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" classCode="DOCCLIN" moodCode="EVN" xmlns="urn:hl7-org:v3">
+  <realmCode code="UV" />
+  <typeId root="2.16.840.1.113883.1.3" extension="POCD_HD000040" />
+  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.1.2" />
+  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.1.11.2" />
+  <id root="8F1150F9-4418-4108-B28B-354C611DC528" />
+  <code code="57055-6" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Antepartum Summary Note" />
+  <title language="en-CA">Antepartum Summary</title>
+  <effectiveTime value="20140523211833.421-0400" />
+  <confidentialityCode code="N" codeSystem="2.16.840.1.113883.5.25" displayName="normal" />
+  <languageCode code="en-US" />
+  <recordTarget typeCode="RCT" contextControlCode="OP">
+    <patientRole classCode="PAT">
+      <id root="2.16.840.1.113883.3.72.5.9.1" extension="5278033997558853066" />
+      <addr use="H">
+        <streetAddressLine>James St.</streetAddressLine>
+        <city>Stoney Creek</city>
+        <state>ON</state>
+        <country>CA</country>
+      </addr>
+      <patient classCode="PSN" determinerCode="INSTANCE">
+        <name use="L">
+          <family>Stewart</family>
+          <given>Chloe</given>
+        </name>
+        <administrativeGenderCode code="F" />
+        <birthTime value="19930510" />
+      </patient>
+    </patientRole>
+  </recordTarget>
+  <author typeCode="AUT" contextControlCode="AP">
+    <time value="20151011201834.476-0400" />
+    <assignedAuthor classCode="ASSIGNED">
+      <id root="8.48.3.2.3.4.5.6.7.5.4.6" extension="23" />
+      <addr use="PHYS">
+        <streetAddressLine>123 Main Street West</streetAddressLine>
+        <city>Muddsville</city>
+        <state>ON</state>
+        <country>CA</country>
+        <postalCode>458552</postalCode>
+      </addr>
+      <assignedPerson classCode="PSN" determinerCode="INSTANCE">
+        <name use="L">
+          <family>Family</family>
+          <given>Francis</given>
+        </name>
+      </assignedPerson>
+      <representedOrganization classCode="ORG" determinerCode="INSTANCE">
+        <id root="8.48.3.2.3.4.5.6.7.5.4.9" extension="6599" />
+        <name>Dr. Family's Family Health Practice</name>
+      </representedOrganization>
+    </assignedAuthor>
+  </author>
+  <custodian typeCode="CST">
+    <assignedCustodian classCode="ASSIGNED">
+      <representedCustodianOrganization classCode="ORG" determinerCode="INSTANCE">
+        <id root="8.48.3.2.3.4.5.6.7.5.4.9" extension="6599" />
+        <name>Dr. Family's Family Health Practice</name>
+        <addr use="PHYS">
+          <streetAddressLine>123 Main Street West</streetAddressLine>
+          <city>Muddsville</city>
+          <state>ON</state>
+          <country>CA</country>
+          <postalCode>458552</postalCode>
+        </addr>
+      </representedCustodianOrganization>
+    </assignedCustodian>
+  </custodian>
+  <participant typeCode="IND" contextControlCode="ON">
+    <time value="1993" />
+    <associatedEntity classCode="NOK">
+      <id root="2.16.840.1.113883.3.72.5.9.0" extension="83a48944-d1e5-466c-9ea4-e429dc57b804" />
+      <id root="2.16.840.1.113883.3.72.5.9.1" extension="4827568204642207058" />
+      <code code="xx-fatherofbaby" codeSystem="2.16.840.1.113883.6.96" displayName="Father of fetus" />
+      <addr use="H">
+        <streetAddressLine>James St.</streetAddressLine>
+        <city>Stoney Creek</city>
+        <state>ON</state>
+        <country>CA</country>
+      </addr>
+      <telecom nullFlavor="NI" />
+      <associatedPerson classCode="PSN" determinerCode="INSTANCE">
+        <name use="L">
+          <family>Stewart</family>
+          <given>Brayden</given>
+        </name>
+      </associatedPerson>
+    </associatedEntity>
+  </participant>
+  <component typeCode="COMP" contextConductionInd="true">
+    <structuredBody classCode="DOCBODY" moodCode="EVN">
+      <component typeCode="COMP" contextConductionInd="true">
+        <section classCode="DOCSECT" moodCode="EVN">
+          <templateId root="1.3.6.1.4.1.19376.1.5.3.1.1.11.2.2.2" />
+          <id root="4DCD6D03-B7A4-4C6E-B200-65BA1D70CC37" />
+          <code code="57059-8" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Pregnancy Summary" />
+          <title language="en-CA">Antepartum Visit Summary Flowsheet Panel</title>
+          <text language="en-CA">
+            <list>
+              <item ID="id9a96d">
+                <caption>Visit 2014-May-23</caption>
+                <list>
+                  <item ID="id08b48">Gestational Age = 16 wk</item>
+                  <item ID="idd35d4">Fundal Height by tapemeasure = 16 cm</item>
+                  <item ID="id8b965">Blood pressure - Systolic = 120 mm[Hg]</item>
+                  <item ID="idb805e">Blood pressure - Diastolic = 80 mm[Hg]</item>
+                  <item ID="id0e76e">Body weight measured = 84 kg</item>
+                </list>
+              </item>
+            </list>
+          </text>
+          <entry typeCode="COMP" contextConductionInd="true">
+            <observation classCode="OBS" moodCode="EVN">
+              <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13" />
+              <templateId root="2.16.840.1.113883.10.20.1.31" />
+              <code code="8348-5" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Prepregnancy Weight" />
+              <text representation="TXT" mediaType="text/plain">Prepregnancy Weight = 80 kg</text>
+              <statusCode code="completed" />
+              <effectiveTime value="20140523211833.421-0400" />
+              <value xsi:type="PQ" unit="kg" value="80" />
+            </observation>
+          </entry>
+          <entry typeCode="DRIV" contextConductionInd="true">
+            <organizer classCode="BATTERY" moodCode="EVN">
+              <templateId root="1.3.6.1.4.1.19376.1.5.3.1.1.11.2.3.2" />
+              <code code="57061-4" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Antepartum Flowsheet Panel" />
+              <statusCode code="completed" />
+              <effectiveTime value="20140523211833.421-0400" />
+              <author typeCode="AUT" contextControlCode="OP">
+                <time value="20140523211833.421-0400" />
+              </author>
+              <component typeCode="COMP" contextConductionInd="true">
+                <observation classCode="OBS" moodCode="EVN">
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13" />
+                  <templateId root="2.16.840.1.113883.10.20.1.31" />
+                  <code code="11884-4" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Gestational Age" />
+                  <text representation="TXT" mediaType="text/plain">
+                    <reference value="#id08b48" />
+                  </text>
+                  <statusCode code="completed" />
+                  <effectiveTime value="20140523211833.421-0400" />
+                  <value xsi:type="PQ" unit="wk" value="16" />
+                </observation>
+              </component>
+              <component typeCode="COMP" contextConductionInd="true">
+                <observation classCode="OBS" moodCode="EVN">
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13" />
+                  <templateId root="2.16.840.1.113883.10.20.1.31" />
+                  <code code="11881-0" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Fundal Height by tapemeasure" />
+                  <text representation="TXT" mediaType="text/plain">
+                    <reference value="#idd35d4" />
+                  </text>
+                  <statusCode code="completed" />
+                  <effectiveTime value="20140523211833.421-0400" />
+                  <value xsi:type="PQ" unit="cm" value="16" />
+                </observation>
+              </component>
+              <component typeCode="COMP" contextConductionInd="true">
+                <observation classCode="OBS" moodCode="EVN">
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13" />
+                  <templateId root="2.16.840.1.113883.10.20.1.31" />
+                  <code code="8480-6" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Blood pressure - Systolic" />
+                  <text representation="TXT" mediaType="text/plain">
+                    <reference value="#id8b965" />
+                  </text>
+                  <statusCode code="completed" />
+                  <effectiveTime value="20140523211833.421-0400" />
+                  <value xsi:type="PQ" unit="mm[Hg]" value="120" />
+                </observation>
+              </component>
+              <component typeCode="COMP" contextConductionInd="true">
+                <observation classCode="OBS" moodCode="EVN">
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13" />
+                  <templateId root="2.16.840.1.113883.10.20.1.31" />
+                  <code code="8462-4" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Blood pressure - Diastolic" />
+                  <text representation="TXT" mediaType="text/plain">
+                    <reference value="#idb805e" />
+                  </text>
+                  <statusCode code="completed" />
+                  <effectiveTime value="20140523211833.421-0400" />
+                  <value xsi:type="PQ" unit="mm[Hg]" value="80" />
+                </observation>
+              </component>
+              <component typeCode="COMP" contextConductionInd="true">
+                <observation classCode="OBS" moodCode="EVN">
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13" />
+                  <templateId root="2.16.840.1.113883.10.20.1.31" />
+                  <code code="3141-9" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Body weight measured" />
+                  <text representation="TXT" mediaType="text/plain">
+                    <reference value="#id0e76e" />
+                  </text>
+                  <statusCode code="completed" />
+                  <effectiveTime value="20140523211833.421-0400" />
+                  <value xsi:type="PQ" unit="kg" value="84" />
+                </observation>
+              </component>
+            </organizer>
+          </entry>
+        </section>
+      </component>
+      <component typeCode="COMP" contextConductionInd="true">
+        <section classCode="DOCSECT" moodCode="EVN">
+          <templateId root="1.3.6.1.4.1.19376.1.5.3.1.1.13.2.5" />
+          <id root="558DAF7B-259C-4FAD-985E-8E9E1F3AF98B" />
+          <code code="51847-2" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="ASSESSMENT AND PLAN" />
+          <title language="en-CA">Patient Assessment and Care Plan</title>
+          <text>
+            <paragraph>PMTCT CASE IDENTIFIED</paragraph>
+            <list>
+              <caption>ASSESSMENT</caption>
+              <item>(2014-May-23) HIV+ Patient presented complaining of missed menstrual period</item>
+              <item>Urine test indicates that patient is pregnant, recommend immediate PMTCT care plan</item>
+            </list>
+            <list>
+              <caption>PLAN</caption>
+              <item>Recommend visit to district clinic for testing and second ANC visit (no later than 2014-07-23)</item>
+              <item>Lorem ipsum lorem ipsum</item>
+            </list>
+          </text>
+        </section>
+      </component>
+      <component typeCode="COMP" contextConductionInd="true">
+        <section classCode="DOCSECT" moodCode="EVN">
+          <templateId root="1.3.6.1.4.1.19376.1.5.3.1.1.11.2.2.1" />
+          <id root="400BFEFD-8FE5-45CC-A88C-B2098B81633B" />
+          <code code="57060-6" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Estimated Date of Delivery" />
+          <title language="en-CA">Estimated Date of Delivery</title>
+          <text>
+            <content>Estimated date of delivery : Thu Nov 13, 2014 based on last menstrual period of Fri Jan 17, 2014</content>
+          </text>
+          <entry typeCode="DRIV" contextConductionInd="false">
+            <observation classCode="OBS" moodCode="EVN">
+              <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13" />
+              <templateId root="1.3.6.1.4.1.19376.1.5.3.1.1.11.2.3.1" />
+              <code code="11778-8" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Delivery Date - Estimate" />
+              <statusCode code="completed" />
+              <effectiveTime value="20140523211833.421-0400" />
+              <value xsi:type="TS" value="20141113" />
+              <author typeCode="AUT" contextControlCode="OP">
+                <time value="20140523211833.421-0400" />
+                <assignedAuthor classCode="ASSIGNED">
+                  <id root="8.48.3.2.3.4.5.6.7.5.4.6" extension="23" />
+                </assignedAuthor>
+              </author>
+              <entryRelationship typeCode="SPRT" contextConductionInd="true">
+                <observation classCode="OBS" moodCode="EVN">
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13" />
+                  <code code="11779-6" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Delivery date estimated from date of last menstrual period" />
+                  <statusCode code="completed" />
+                  <effectiveTime value="20140523211833.421-0400" />
+                  <value xsi:type="TS" value="20141113" />
+                  <entryRelationship typeCode="SPRT" contextConductionInd="true">
+                    <observation classCode="OBS" moodCode="EVN">
+                      <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13" />
+                      <code code="8655-2" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Date of last menstrual period" />
+                      <statusCode code="completed" />
+                      <effectiveTime value="20140523211833.421-0400" />
+                      <value xsi:type="TS" value="20140117" />
+                    </observation>
+                  </entryRelationship>
+                </observation>
+              </entryRelationship>
+            </observation>
+          </entry>
+        </section>
+      </component>
+      <component typeCode="COMP" contextConductionInd="true">
+        <section classCode="DOCSECT" moodCode="EVN">
+          <templateId root="1.3.6.1.4.1.19376.1.5.3.1.1.5.3.2" extension="1.3.6.1.4.1.19376.1.5.3.1.3.25" />
+          <id root="C890F1CD-E7CF-4D90-BC4C-FACF39F3E736" />
+          <code code="8716-3" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Vital Signs" />
+          <title language="en-CA">Vital Signs</title>
+          <text language="en-CA">
+            <list>
+              <item ID="id5e569">
+                <caption>Visit 2014-May-23</caption>
+                <list>
+                  <item ID="id8b0fb">Blood pressure - Systolic = 120 mm[Hg]</item>
+                  <item ID="id27c16">Blood pressure - Diastolic = 80 mm[Hg]</item>
+                  <item ID="id032d7">Body weight measured = 84 kg</item>
+                  <item ID="idda81b">Body weight measured = 185 cm</item>
+                  <item ID="id33eb6">Body Temperature = 36.5 cel</item>
+                </list>
+              </item>
+            </list>
+          </text>
+          <entry typeCode="DRIV" contextConductionInd="true">
+            <organizer classCode="BATTERY" moodCode="EVN">
+              <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13.1" />
+              <code code="46680005" codeSystem="2.16.840.1.113883.6.96" codeSystemName="SNOMED CT" displayName="Vital Signs" />
+              <statusCode code="completed" />
+              <effectiveTime value="20140523211833.421-0400" />
+              <author typeCode="AUT" contextControlCode="OP">
+                <time value="20140523211833.421-0400" />
+              </author>
+              <component typeCode="COMP" contextConductionInd="true">
+                <observation classCode="OBS" moodCode="EVN">
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13" />
+                  <templateId root="2.16.840.1.113883.10.20.1.31" />
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13.2" />
+                  <code code="8480-6" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Blood pressure - Systolic" />
+                  <text representation="TXT" mediaType="text/plain">
+                    <reference value="#id8b0fb" />
+                  </text>
+                  <statusCode code="completed" />
+                  <effectiveTime value="20140523211833.421-0400" />
+                  <value xsi:type="PQ" unit="mm[Hg]" value="120" />
+                </observation>
+              </component>
+              <component typeCode="COMP" contextConductionInd="true">
+                <observation classCode="OBS" moodCode="EVN">
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13" />
+                  <templateId root="2.16.840.1.113883.10.20.1.31" />
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13.2" />
+                  <code code="8462-4" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Blood pressure - Diastolic" />
+                  <text representation="TXT" mediaType="text/plain">
+                    <reference value="#id27c16" />
+                  </text>
+                  <statusCode code="completed" />
+                  <effectiveTime value="20140523211833.421-0400" />
+                  <value xsi:type="PQ" unit="mm[Hg]" value="80" />
+                </observation>
+              </component>
+              <component typeCode="COMP" contextConductionInd="true">
+                <observation classCode="OBS" moodCode="EVN">
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13" />
+                  <templateId root="2.16.840.1.113883.10.20.1.31" />
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13.2" />
+                  <code code="3141-9" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Body weight measured" />
+                  <text representation="TXT" mediaType="text/plain">
+                    <reference value="#id032d7" />
+                  </text>
+                  <statusCode code="completed" />
+                  <effectiveTime value="20140523211833.421-0400" />
+                  <value xsi:type="PQ" unit="kg" value="84" />
+                </observation>
+              </component>
+              <component typeCode="COMP" contextConductionInd="true">
+                <observation classCode="OBS" moodCode="EVN">
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13" />
+                  <templateId root="2.16.840.1.113883.10.20.1.31" />
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13.2" />
+                  <code code="8302-2" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Body weight measured" />
+                  <text representation="TXT" mediaType="text/plain">
+                    <reference value="#idda81b" />
+                  </text>
+                  <statusCode code="completed" />
+                  <effectiveTime value="20140523211833.421-0400" />
+                  <value xsi:type="PQ" unit="cm" value="185" />
+                </observation>
+              </component>
+              <component typeCode="COMP" contextConductionInd="true">
+                <observation classCode="OBS" moodCode="EVN">
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13" />
+                  <templateId root="2.16.840.1.113883.10.20.1.31" />
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.13.2" />
+                  <code code="8310-5" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Body Temperature" />
+                  <text representation="TXT" mediaType="text/plain">
+                    <reference value="#id33eb6" />
+                  </text>
+                  <statusCode code="completed" />
+                  <effectiveTime value="20140523211833.421-0400" />
+                  <value xsi:type="PQ" unit="cel" value="36.5" />
+                </observation>
+              </component>
+            </organizer>
+          </entry>
+        </section>
+      </component>
+      <component typeCode="COMP" contextConductionInd="true">
+        <section classCode="DOCSECT" moodCode="EVN">
+          <templateId root="2.16.840.1.113883.10.20.1.8" />
+          <templateId root="1.3.6.1.4.1.19376.1.5.3.1.3.19" />
+          <id root="85E3B266-4B0B-4425-A66A-02409AE76B35" />
+          <code code="10160-0" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="HISTORY OF MEDICATION USE" />
+          <title language="en-CA">History of Medication Use</title>
+          <text language="en-CA">
+            <list>
+              <item ID="id04630">Drug Display Name (Swallow, oral) 25 mg Every 12 hrs Start:2014-05-23  until 2014-11-13, </item>
+              <item ID="id04c81"> (Swallow, oral) 80 mg Every 8 hours Start:2014-05-23 , </item>
+            </list>
+          </text>
+          <entry typeCode="COMP" contextConductionInd="true">
+            <substanceAdministration classCode="SBADM" moodCode="INT">
+              <templateId root="2.16.840.1.113883.10.20.1.24" />
+              <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.7" />
+              <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.7.1" />
+              <code code="SNOMED CODE FOR PMTCT TREATMENT" codeSystem="2.16.840.1.113883.6.96" codeSystemName="SNOMED CT" displayName="PMTCT Treatment CPT Code" />
+              <text representation="TXT" mediaType="text/plain" language="en-CA">
+                <reference value="#id04630" />
+              </text>
+              <statusCode code="completed" />
+              <effectiveTime xsi:type="IVL_TS">
+                <low value="20140523211833.421-0400" />
+                <high value="20141113211833.421-0500" />
+              </effectiveTime>
+              <effectiveTime xsi:type="PIVL_TS" operator="A">
+                <period unit="h" value="12" />
+              </effectiveTime>
+              <routeCode xsi:type="CD" code="PO" codeSystem="2.16.840.1.113883.5.112" codeSystemName="RouteOfAdministration" displayName="Swallow, oral" />
+              <doseQuantity unit="mg" value="25" />
+              <consumable typeCode="CSM">
+                <manufacturedProduct classCode="MANU">
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.7.2" />
+                  <templateId root="2.16.840.1.113883.10.20.1.53" />
+                  <manufacturedMaterial classCode="MMAT" determinerCode="QUANTIFIED_KIND">
+                    <code xsi:type="CD" code="RxNORM CODE FOR ARV" codeSystem="2.16.840.1.113883.6.88" codeSystemName="RxNORM" displayName="Drug Display Name" />
+                    <name>Drug Display Name</name>
+                    <lotNumberText nullFlavor="NI" />
+                  </manufacturedMaterial>
+                </manufacturedProduct>
+              </consumable>
+            </substanceAdministration>
+          </entry>
+          <entry typeCode="COMP" contextConductionInd="true">
+            <substanceAdministration classCode="SBADM" moodCode="INT">
+              <templateId root="2.16.840.1.113883.10.20.1.24" />
+              <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.7" />
+              <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.7.1" />
+              <code code="SNOMED CODE FOR ARV TREATMENT" codeSystem="2.16.840.1.113883.6.96" codeSystemName="SNOMED CT" displayName="ARV Treatment CPT Code" />
+              <text representation="TXT" mediaType="text/plain" language="en-CA">
+                <reference value="#id04c81" />
+              </text>
+              <statusCode code="completed" />
+              <effectiveTime xsi:type="IVL_TS">
+                <low value="20140523211833.421-0400" />
+              </effectiveTime>
+              <effectiveTime xsi:type="PIVL_TS" operator="A">
+                <period unit="h" value="8" />
+              </effectiveTime>
+              <routeCode xsi:type="CD" code="PO" codeSystem="2.16.840.1.113883.5.112" codeSystemName="RouteOfAdministration" displayName="Swallow, oral" />
+              <doseQuantity unit="mg" value="80" />
+              <consumable typeCode="CSM">
+                <manufacturedProduct classCode="MANU">
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.7.2" />
+                  <templateId root="2.16.840.1.113883.10.20.1.53" />
+                  <manufacturedMaterial classCode="MMAT" determinerCode="QUANTIFIED_KIND">
+                    <code xsi:type="CD" nullFlavor="OTH" codeSystem="2.16.840.1.113883.6.88" codeSystemName="RxNORM">
+                      <translation code="ATC CODE FOR ARV DRUG" codeSystem="2.16.840.1.113883.6.77" codeSystemName="ATC DRUG CODES" displayName="Drug Name" />
+                    </code>
+                    <name>Drug Name</name>
+                    <lotNumberText nullFlavor="NI" />
+                  </manufacturedMaterial>
+                </manufacturedProduct>
+              </consumable>
+            </substanceAdministration>
+          </entry>
+        </section>
+      </component>
+    </structuredBody>
+  </component>
+</ClinicalDocument>

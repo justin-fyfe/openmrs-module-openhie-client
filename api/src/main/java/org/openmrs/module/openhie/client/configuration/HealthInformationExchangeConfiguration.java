@@ -26,6 +26,7 @@ public class HealthInformationExchangeConfiguration {
 	private static final String PROP_NAME_PIX_EP_PORT = "openhie-client.endpoint.pix.port";
 	private static final String PROP_NAME_XDS_REG_EP = "openhie-client.endpoint.xds.registry";
 	private static final String PROP_NAME_XDS_REP_EP = "openhie-client.endpoint.xds.repository";
+    private static final String PROP_ID_REGEX = "openhie-client.id.regex";
 
 
     private Map<String, Object> m_cachedProperties = new HashMap<String, Object>();
@@ -134,4 +135,11 @@ public class HealthInformationExchangeConfiguration {
     	return this.getOrCreateGlobalProperty(PROP_NAME_XDS_REP_EP, "http://localhost/xdsrepository");
     }
     
+    /**
+     * Get the XDS Repository endpoint
+     * @return
+     */
+    public String getIdRegex() {
+    	return this.getOrCreateGlobalProperty(PROP_ID_REGEX, "^(.*)?\\^\\^\\^\\&(.*)?\\&ISO$");
+    }
 }

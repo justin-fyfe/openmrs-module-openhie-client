@@ -35,5 +35,12 @@ public class HealthInformationExchangeException extends Exception {
 	public HealthInformationExchangeException(String message) {
 		super(message);
 	}
+
+	/**
+	 * Create HIE Exception with cause
+	 */
+	public HealthInformationExchangeException(String message, Exception e) {
+		super(message, e);
+	}
 	
 }

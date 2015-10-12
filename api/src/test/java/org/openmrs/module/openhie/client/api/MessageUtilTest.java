@@ -14,7 +14,7 @@ import org.openmrs.PatientIdentifier;
 import org.openmrs.PatientIdentifierType;
 import org.openmrs.PersonName;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.openhie.client.api.impl.MessageUtil;
+import org.openmrs.module.openhie.client.util.MessageUtil;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 
 import ca.uhn.hl7v2.HL7Exception;

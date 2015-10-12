@@ -3,10 +3,8 @@ package org.openmrs.module.openhie.client.api.impl;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -35,13 +33,10 @@ import org.openmrs.module.openhie.client.configuration.HealthInformationExchange
 import org.openmrs.module.openhie.client.dao.HealthInformationExchangeDao;
 import org.openmrs.module.openhie.client.exception.HealthInformationExchangeException;
 import org.openmrs.module.openhie.client.hie.model.DocumentInfo;
+import org.openmrs.module.openhie.client.util.MessageUtil;
 import org.openmrs.module.shr.cdahandler.CdaImporter;
 import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
 import org.openmrs.module.shr.cdahandler.everest.EverestUtil;
-import org.openmrs.module.shr.odd.generator.document.impl.CcdGenerator;
-import org.openmrs.module.shr.odd.model.OnDemandDocumentEncounterLink;
-import org.openmrs.module.shr.odd.model.OnDemandDocumentRegistration;
-import org.openmrs.module.shr.odd.model.OnDemandDocumentType;
 
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.util.Terser;
@@ -278,15 +273,15 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 		
 		try
 		{
-		CdaImporter importer = CdaImporter.getInstance();
-		// Parse the byte stream into a CLinical Document
-		IXmlStructureFormatter formatter = EverestUtil.createFormatter();
-		
-		byte[] documentContent = this.fetchDocument(document);
-
-		ByteArrayInputStream bis = new ByteArrayInputStream(documentContent);
-		Visit visit = importer.processCdaDocument((ClinicalDocument)formatter.parse(bis).getStructure());
-		return visit.getEncounters().iterator().next();
+			CdaImporter importer = CdaImporter.getInstance();
+			// Parse the byte stream into a CLinical Document
+			IXmlStructureFormatter formatter = EverestUtil.createFormatter();
+			
+			byte[] documentContent = this.fetchDocument(document);
+	
+			ByteArrayInputStream bis = new ByteArrayInputStream(documentContent);
+			Visit visit = importer.processCdaDocument((ClinicalDocument)formatter.parse(bis).getStructure());
+			return visit.getEncounters().iterator().next();
 		}
 		catch(Exception e)
 		{

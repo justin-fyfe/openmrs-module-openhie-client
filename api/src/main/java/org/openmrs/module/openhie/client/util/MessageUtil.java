@@ -1,4 +1,4 @@
-package org.openmrs.module.openhie.client.api.impl;
+package org.openmrs.module.openhie.client.util;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -15,7 +15,6 @@ import javax.xml.namespace.QName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dcm4chee.xds2.common.XDSConstants;
-import org.dcm4chee.xds2.common.XDSUtil;
 import org.dcm4chee.xds2.infoset.ihe.ProvideAndRegisterDocumentSetRequestType;
 import org.dcm4chee.xds2.infoset.ihe.ProvideAndRegisterDocumentSetRequestType.Document;
 import org.dcm4chee.xds2.infoset.ihe.RetrieveDocumentSetRequestType;
@@ -41,7 +40,6 @@ import org.dcm4chee.xds2.infoset.ws.registry.DocumentRegistryPortType;
 import org.dcm4chee.xds2.infoset.ws.repository.DocumentRepositoryPortType;
 import org.marc.everest.datatypes.II;
 import org.marc.everest.datatypes.TS;
-import org.marc.everest.datatypes.generic.CV;
 import org.openmrs.ImplementationId;
 import org.openmrs.Location;
 import org.openmrs.Obs;
@@ -58,9 +56,6 @@ import org.openmrs.module.openhie.client.configuration.HealthInformationExchange
 import org.openmrs.module.openhie.client.exception.HealthInformationExchangeException;
 import org.openmrs.module.openhie.client.hie.model.DocumentInfo;
 import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
-import org.openmrs.module.shr.odd.model.OnDemandDocumentEncounterLink;
-import org.openmrs.module.shr.odd.util.CdaDataUtil;
-import org.openmrs.module.shr.odd.util.XdsUtil;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.app.Connection;
