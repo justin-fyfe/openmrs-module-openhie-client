@@ -12,7 +12,7 @@ import org.openmrs.module.shr.cdahandler.CdaHandlerConstants;
  * @author JustinFyfe
  *
  */
-public class ApsClinicalDocumentBuilder extends DocumentBuilderImpl {
+public class ApsDocumentBuilder extends DocumentBuilderImpl {
 
 	/**
 	 * Generate the APS summary

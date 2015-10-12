@@ -27,7 +27,7 @@ import org.openmrs.Obs;
 import org.openmrs.Visit;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.openhie.client.api.util.CdaLoggingUtils;
-import org.openmrs.module.openhie.client.cda.document.impl.ApsClinicalDocumentBuilder;
+import org.openmrs.module.openhie.client.cda.document.impl.ApsDocumentBuilder;
 import org.openmrs.module.openhie.client.cda.section.impl.AntepartumFlowsheetPanelSectionBuilder;
 import org.openmrs.module.openhie.client.cda.section.impl.EstimatedDeliveryDateSectionBuilder;
 import org.openmrs.module.openhie.client.cda.section.impl.MedicationsSectionBuilder;
@@ -177,7 +177,7 @@ public class CdaConstructionTest extends BaseModuleContextSensitiveTest {
 				vitalSignsSection = vitalSignsSectionBuilder.generate(systolicBpObs, diastolicBpObs, weightObs, heightObs, temperatureObs),
 				medicationsSection = medSectionBuilder.generate(medicationObs.toArray(new Obs[]{})); 
 	
-		ApsClinicalDocumentBuilder apsBuilder = new ApsClinicalDocumentBuilder();
+		ApsDocumentBuilder apsBuilder = new ApsDocumentBuilder();
 		apsBuilder.setRecordTarget(v1.getPatient());
 		apsBuilder.setEncounterEvent(v1.getEncounters().iterator().next());
 		
