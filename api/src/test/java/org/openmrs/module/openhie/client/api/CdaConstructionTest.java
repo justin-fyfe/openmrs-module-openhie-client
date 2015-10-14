@@ -176,11 +176,9 @@ public class CdaConstructionTest extends BaseModuleContextSensitiveTest {
 				flowsheetSection = flowsheetSectionBuilder.generate(prepregnancyWeightObs, gestgationalAgeObs, fundalHeightObs, presentationObs, systolicBpObs, diastolicBpObs, weightObs),
 				vitalSignsSection = vitalSignsSectionBuilder.generate(systolicBpObs, diastolicBpObs, weightObs, heightObs, temperatureObs),
 				medicationsSection = medSectionBuilder.generate(medicationObs.toArray(new Obs[]{})); 
-	
 		ApsDocumentBuilder apsBuilder = new ApsDocumentBuilder();
 		apsBuilder.setRecordTarget(v1.getPatient());
 		apsBuilder.setEncounterEvent(v1.getEncounters().iterator().next());
-		
 		ClinicalDocument doc = apsBuilder.generate(eddSection, flowsheetSection, vitalSignsSection, medicationsSection);
 		
 		log.error(CdaLoggingUtils.getCdaAsString(doc));

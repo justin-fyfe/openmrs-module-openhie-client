@@ -2,7 +2,10 @@ package org.openmrs.module.openhie.client.api.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +13,10 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dcm4che3.audit.AuditMessage;
+import org.dcm4che3.net.IncompatibleConnectionException;
+import org.dcm4chee.xds2.common.XDSUtil;
+import org.dcm4chee.xds2.common.audit.XDSAudit;
 import org.dcm4chee.xds2.infoset.ihe.ProvideAndRegisterDocumentSetRequestType;
 import org.dcm4chee.xds2.infoset.ihe.RetrieveDocumentSetRequestType;
 import org.dcm4chee.xds2.infoset.ihe.RetrieveDocumentSetRequestType.DocumentRequest;
@@ -33,12 +40,16 @@ import org.openmrs.module.openhie.client.configuration.HealthInformationExchange
 import org.openmrs.module.openhie.client.dao.HealthInformationExchangeDao;
 import org.openmrs.module.openhie.client.exception.HealthInformationExchangeException;
 import org.openmrs.module.openhie.client.hie.model.DocumentInfo;
+import org.openmrs.module.openhie.client.util.AuditUtil;
 import org.openmrs.module.openhie.client.util.MessageUtil;
+import org.openmrs.module.openhie.client.util.XdsUtil;
+import org.openmrs.module.shr.atna.api.AtnaAuditService;
 import org.openmrs.module.shr.cdahandler.CdaImporter;
 import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
 import org.openmrs.module.shr.cdahandler.everest.EverestUtil;
 
 import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.v25.message.QBP_Q21;
 import ca.uhn.hl7v2.util.Terser;
 
 /**
@@ -57,7 +68,7 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 	private HealthInformationExchangeConfiguration m_configuration = HealthInformationExchangeConfiguration.getInstance();
 	// Get CDA handler configruation
 	private CdaHandlerConfiguration m_cdaConfiguration = CdaHandlerConfiguration.getInstance();
-	
+
 	// DAO
 	private HealthInformationExchangeDao dao;
 	
@@ -123,21 +134,41 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 			}
 		}
 			
+		AtnaAuditService auditSvc= Context.getService(AtnaAuditService.class);
+		AuditMessage auditMessage = null;
+		Message pdqRequest = null;
+		
 		// Send the message and construct the result set
 		try
 		{
-			Message pdqRequest = this.m_messageUtil.createPdqMessage(queryParams),
-					response = this.m_messageUtil.sendMessage(pdqRequest, this.m_configuration.getPdqEndpoint(), this.m_configuration.getPdqPort());
+			pdqRequest = this.m_messageUtil.createPdqMessage(queryParams);
+			Message	response = this.m_messageUtil.sendMessage(pdqRequest, this.m_configuration.getPdqEndpoint(), this.m_configuration.getPdqPort());
 			
 			Terser terser = new Terser(response);
 			if(!terser.get("/MSA-1").endsWith("A"))
 				throw new HealthInformationExchangeException("Error querying data");
-			return this.m_messageUtil.interpretPIDSegments(response);
+			
+			
+			List<Patient> retVal = this.m_messageUtil.interpretPIDSegments(response);
+			auditMessage = AuditUtil.getInstance().createPatientSearch(retVal, this.m_configuration.getPdqEndpoint(), (QBP_Q21)pdqRequest);
+			return retVal;
 		}
 		catch(Exception e)
 		{
-			log.error(e);
+			log.error("Error in PDQ Search", e);
+			if(pdqRequest != null)
+				auditMessage = AuditUtil.getInstance().createPatientSearch(null, this.m_configuration.getPdqEndpoint(), (QBP_Q21)pdqRequest);
+
 			throw new HealthInformationExchangeException(e);
+		}
+		finally
+		{
+			if(auditMessage != null)
+				try {
+					auditSvc.getLogger().write(Calendar.getInstance(), auditMessage);
+				} catch (Exception e) {
+					log.error(e);
+				}
 		}
 	}
 
@@ -152,13 +183,20 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 		queryParameters.put("@PID.3.1", identifier);
 		queryParameters.put("@PID.3.4.2", assigningAuthority);
 		queryParameters.put("@PID.3.4.3", "ISO");
+
+		// Auditing stuff
+		AtnaAuditService auditSvc= Context.getService(AtnaAuditService.class);
+		AuditMessage auditMessage = null;
+		Message request = null;
 		
 		try
 		{
-			Message request = this.m_messageUtil.createPdqMessage(queryParameters),
-					response = this.m_messageUtil.sendMessage(request, this.m_configuration.getPdqEndpoint(), this.m_configuration.getPdqPort());
+			request = this.m_messageUtil.createPdqMessage(queryParameters);
+			Message response = this.m_messageUtil.sendMessage(request, this.m_configuration.getPdqEndpoint(), this.m_configuration.getPdqPort());
 			
 			List<Patient> pats = this.m_messageUtil.interpretPIDSegments(response);
+			auditMessage = AuditUtil.getInstance().createPatientSearch(pats, this.m_configuration.getPdqEndpoint(), (QBP_Q21)request);
+
 			if(pats.size() > 1)
 				throw new DuplicateIdentifierException("More than one patient exists");
 			else if(pats.size() == 0)
@@ -168,8 +206,21 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 		}
 		catch(Exception e)
 		{
-			log.error(e);
+			log.error("Error in PDQ Search", e);
+
+			if(request != null)
+				auditMessage = AuditUtil.getInstance().createPatientSearch(null, this.m_configuration.getPdqEndpoint(), (QBP_Q21)request);
+
 			throw new HealthInformationExchangeException(e);
+		}
+		finally
+		{
+			if(auditMessage != null)
+				try {
+					auditSvc.getLogger().write(Calendar.getInstance(), auditMessage);
+				} catch (Exception e) {
+					log.error(e);
+				}
 		}
 	}
 
@@ -216,7 +267,8 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 		{
 			boolean isPreferred = false;
 			for(PatientIdentifier id : patient.getIdentifiers())
-				if(id.getIdentifierType().getName().equals(this.m_cdaConfiguration.getEcidRoot()))
+				if(id.getIdentifierType().getName().equals(this.m_cdaConfiguration.getEcidRoot()) ||
+						id.getIdentifierType().getUuid().equals(this.m_cdaConfiguration.getEcidRoot()))
 				{
 					id.setPreferred(true);
 					isPreferred = true;
@@ -244,6 +296,9 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 	 * @throws HealthInformationExchangeException 
 	 */
 	public byte[] fetchDocument(DocumentInfo document) throws HealthInformationExchangeException {
+		
+		AtnaAuditService auditSvc = Context.getService(AtnaAuditService.class);
+		AuditMessage auditMessage = null;
 		try
 		{
 			RetrieveDocumentSetRequestType request = new RetrieveDocumentSetRequestType();
@@ -257,11 +312,28 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 				throw new HealthInformationExchangeException("No results returned");
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			response.getDocumentResponse().get(0).getDocument().writeTo(bos);
+
+			auditMessage = AuditUtil.getInstance().createFetchDocument(response, this.m_configuration.getXdsRepositoryEndpoint());
+			
 			return bos.toByteArray();
 		}
 		catch(Exception e)
 		{
+			log.error("Error in XDS Fetch", e);
+			auditMessage = AuditUtil.getInstance().createFetchDocument(null, this.m_configuration.getXdsRepositoryEndpoint());
 			throw new HealthInformationExchangeException(e);
+		}
+		finally
+		{
+			if(auditMessage != null)
+				try
+				{
+					auditSvc.getLogger().write(Calendar.getInstance(), auditMessage);
+				}
+				catch(Exception e)
+				{
+					log.error(e);
+				}
 		}
 	}
 
@@ -294,17 +366,38 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 	 * @throws HealthInformationExchangeException 
 	 */
 	public DocumentInfo exportDocument(byte[] documentContent, DocumentInfo info) throws HealthInformationExchangeException {
+		
+		AtnaAuditService auditSvc = Context.getService(AtnaAuditService.class);
+		AuditMessage auditMessage = null;
+		ProvideAndRegisterDocumentSetRequestType request = null;
 		try
 		{
-			ProvideAndRegisterDocumentSetRequestType request = this.m_messageUtil.createProvdeAndRegisterDocument(documentContent, info);
+			request = this.m_messageUtil.createProvdeAndRegisterDocument(documentContent, info);
 			RegistryResponseType response = this.m_messageUtil.sendProvideAndRegister(request);
 			if(!response.getStatus().contains("Success"))
 				throw new Exception("Could not execute provide and register");
+			
+			auditMessage = AuditUtil.getInstance().createExportDocument(request, response, this.m_configuration.getXdsRepositoryEndpoint());
 			return info;
 		}
 		catch(Exception e)
 		{
+			log.error("Error in XDS Export", e);
+			if(request != null)
+				auditMessage = AuditUtil.getInstance().createExportDocument(request, null, this.m_configuration.getXdsRepositoryEndpoint());
 			throw new HealthInformationExchangeException(e);
+		}
+		finally
+		{
+			if(auditMessage != null)
+				try
+				{
+					auditSvc.getLogger().write(Calendar.getInstance(), auditMessage);
+				}
+				catch(Exception e)
+				{
+					log.error(e);
+				}
 		}
 	}
 

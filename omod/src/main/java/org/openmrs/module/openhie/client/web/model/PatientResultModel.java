@@ -110,7 +110,8 @@ public class PatientResultModel {
 		for(PatientIdentifier pid : result.getIdentifiers())
 		{
 			log.error(pid.getIdentifierType().getName());
-			if(pid.getIdentifierType().getName().equals(this.m_configuration.getEcidRoot()))
+			if(pid.getIdentifierType().getName().equals(this.m_configuration.getEcidRoot()) ||
+					pid.getIdentifierType().getUuid().equals(this.m_configuration.getEcidRoot()))
 				this.ecid = pid.getIdentifier();
 			else if(this.identifier == null)
 				this.identifier = String.format("%s (%s)", pid.getIdentifier(), pid.getIdentifierType().getDescription());

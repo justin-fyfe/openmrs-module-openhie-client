@@ -4,8 +4,6 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -23,7 +21,6 @@ import org.marc.everest.datatypes.II;
 import org.marc.everest.datatypes.INT;
 import org.marc.everest.datatypes.NullFlavor;
 import org.marc.everest.datatypes.PQ;
-import org.marc.everest.datatypes.ST;
 import org.marc.everest.datatypes.SetOperator;
 import org.marc.everest.datatypes.TS;
 import org.marc.everest.datatypes.generic.CD;
@@ -46,7 +43,6 @@ import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Consumable;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Criterion;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.EntryRelationship;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.ExternalAct;
-import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.ExternalDocument;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.ManufacturedProduct;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Material;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Observation;
@@ -77,13 +73,11 @@ import org.openmrs.Provider;
 import org.openmrs.activelist.ActiveListItem;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.openhie.client.cda.entry.EntryBuilder;
-import org.openmrs.module.openhie.client.configuration.HealthInformationExchangeConfiguration;
 import org.openmrs.module.openhie.client.util.CdaDataUtil;
 import org.openmrs.module.openhie.client.util.CdaMetadataUtil;
 import org.openmrs.module.shr.cdahandler.CdaHandlerConstants;
 import org.openmrs.module.shr.cdahandler.api.CdaImportService;
 import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
-import org.openmrs.module.shr.cdahandler.exception.DocumentImportException;
 import org.openmrs.module.shr.cdahandler.obs.ExtendedObs;
 import org.openmrs.module.shr.cdahandler.processor.entry.impl.ihe.pcc.ConcernEntryProcessor;
 import org.openmrs.util.OpenmrsConstants;
@@ -158,7 +152,7 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 	/**
 	 * Create a consumable
 	 */
-	private Consumable createConsumable(Concept valueConcept, Drug valueDrug, int containerConcent) {
+	private Consumable createConsumable(Concept valueConcept, Drug valueDrug, String preferredCs) {
 		// Create the product
 		Consumable consumable = new Consumable();
 		ManufacturedProduct product = new ManufacturedProduct(RoleClassManufacturedProduct.ManufacturedProduct);
@@ -169,15 +163,8 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 		
 		
 		// Drug code
-		CE<String> cvxCode = this.m_cdaMetadataUtil.getStandardizedCode(valueConcept, CdaHandlerConstants.CODE_SYSTEM_CVX, CE.class);
-		if(cvxCode != null && cvxCode.isNull())
-		{
-			CE<String> drugCode = this.m_cdaMetadataUtil.getStandardizedCode(valueConcept, CdaHandlerConstants.CODE_SYSTEM_RXNORM, CE.class);
-			if(!drugCode.isNull())
-				manufacturedMaterial.setCode(drugCode);
-		}
-		if(manufacturedMaterial.getCode() == null)
-			manufacturedMaterial.setCode(cvxCode);
+		CE<String> code = this.m_cdaMetadataUtil.getStandardizedCode(valueConcept, preferredCs, CE.class);
+			manufacturedMaterial.setCode(code);
 		
 		// Now get the drug from the concept
 		if(valueDrug != null && valueDrug.getName() != null)
@@ -556,13 +543,21 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 	    			break;
 	    			
 	    		case CdaHandlerConstants.CONCEPT_ID_MEDICATION_DRUG:
+	    		{
+					Drug valueDrug = component.getValueDrug();
+					Concept concept = component.getValueCoded();
+					if(valueDrug != null)
+						concept = valueDrug.getConcept();
+	    			retVal.setConsumable(this.createConsumable(concept, valueDrug, CdaHandlerConstants.CODE_SYSTEM_RXNORM));
+	    		}
+	    			break;
 	    		case CdaHandlerConstants.CONCEPT_ID_IMMUNIZATION_DRUG:
 	    		{
 					Drug valueDrug = component.getValueDrug();
 					Concept concept = component.getValueCoded();
 					if(valueDrug != null)
 						concept = valueDrug.getConcept();
-	    			retVal.setConsumable(this.createConsumable(concept, valueDrug, sourceObs.getConcept().getId()));
+	    			retVal.setConsumable(this.createConsumable(concept, valueDrug, CdaHandlerConstants.CODE_SYSTEM_CVX));
 	    		}
 	    			break;
 	    		case CdaHandlerConstants.CONCEPT_ID_IMMUNIZATION_SEQUENCE:
@@ -644,7 +639,7 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 	    						Concept concept = supplyComponent.getValueCoded();
 	    						if(valueDrug != null)
 	    							concept = valueDrug.getConcept();
-	    						Consumable cons = this.createConsumable(concept, supplyComponent.getValueDrug(), sourceObs.getConcept().getId());
+	    						Consumable cons = this.createConsumable(concept, supplyComponent.getValueDrug(), CdaHandlerConstants.CODE_SYSTEM_RXNORM);
 	    						supply.setProduct(new Product(cons.getManufacturedProduct()));
 	    					}
 	    						break;

@@ -217,6 +217,11 @@ public final class MessageUtil {
 					patientId.getAssigningAuthority().getUniversalID().setValue(patIdentifier.getIdentifierType().getName());
 					patientId.getAssigningAuthority().getUniversalIDType().setValue("ISO");
 				}
+				else if(II.isRootOid(new II(patIdentifier.getIdentifierType().getUuid())))
+				{
+					patientId.getAssigningAuthority().getUniversalID().setValue(patIdentifier.getIdentifierType().getUuid());
+					patientId.getAssigningAuthority().getUniversalIDType().setValue("ISO");
+				}
 				else
 					patientId.getAssigningAuthority().getNamespaceID().setValue(patIdentifier.getIdentifierType().getName());
 	
@@ -350,9 +355,18 @@ public final class MessageUtil {
 	 * @throws HL7Exception 
 	 */
 	public List<Patient> interpretPIDSegments(
-			Message response) throws HL7Exception {
+			Message response) throws HL7Exception, HealthInformationExchangeException {
 		List<Patient> retVal = new ArrayList<Patient>();
 		
+		Terser terser = new Terser(response);
+		// Check for AA and OK in QAK
+		if(terser.get("/MSA-1") != null && 
+				terser.get("/MSA-1").equals("AE"))
+			throw new HealthInformationExchangeException("Server Error");
+		else if(terser.get("/QAK-2") != null && 
+				terser.get("/QAK-2").equals("NF"))
+			return retVal;
+
 		Location defaultLocation = Context.getLocationService().getDefaultLocation();
 		
 		for(Structure queryResponseStruct : response.getAll("QUERY_RESPONSE"))
@@ -370,10 +384,29 @@ public final class MessageUtil {
 					
 					if(id.getAssigningAuthority().getUniversalID().getValue() != null &&
 							!id.getAssigningAuthority().getUniversalID().getValue().isEmpty())
+					{
 							pit = Context.getPatientService().getPatientIdentifierTypeByName(id.getAssigningAuthority().getUniversalID().getValue());
+							if(pit == null)
+								pit = Context.getPatientService().getPatientIdentifierTypeByUuid(id.getAssigningAuthority().getUniversalID().getValue());
+							else if(!pit.getUuid().equals(id.getAssigningAuthority().getUniversalID().getValue())) // fix the UUID
+							{
+								log.debug(String.format("Updating %s to have UUID %s", pit.getName(), id.getAssigningAuthority().getUniversalID().getValue()));
+								pit.setUuid(id.getAssigningAuthority().getUniversalID().getValue());
+								Context.getPatientService().savePatientIdentifierType(pit);
+							}
+					}
 					if(pit == null && id.getAssigningAuthority().getNamespaceID().getValue() != null &&
-							!id.getAssigningAuthority().getNamespaceID().getValue().isEmpty()) 
+							!id.getAssigningAuthority().getNamespaceID().getValue().isEmpty())
+					{
 						pit = Context.getPatientService().getPatientIdentifierTypeByName(id.getAssigningAuthority().getNamespaceID().getValue());
+						if(pit != null && !pit.getUuid().equals(id.getAssigningAuthority().getUniversalID().getValue())) // fix the UUID
+						{
+							log.debug(String.format("Updating %s to have UUID %s", pit.getName(), id.getAssigningAuthority().getUniversalID().getValue()));
+							pit.setUuid(id.getAssigningAuthority().getUniversalID().getValue());
+							Context.getPatientService().savePatientIdentifierType(pit);
+						}
+
+					}
 					if(pit == null)
 						continue;
 					
@@ -511,7 +544,7 @@ public final class MessageUtil {
 	public Message createPixMessage(Patient patient, String toAssigningAuthority) throws HL7Exception {
 		QBP_Q21 retVal = new QBP_Q21();
 		this.updateMSH(retVal.getMSH(), "QBP", "Q23");
-		retVal.getMSH().getVersionID().getVersionID().setValue("2.3.1");
+		retVal.getMSH().getVersionID().getVersionID().setValue("2.5");
 
 		Terser queryTerser = new Terser(retVal);
 		queryTerser.set("/QPD-3-1", patient.getId().toString());

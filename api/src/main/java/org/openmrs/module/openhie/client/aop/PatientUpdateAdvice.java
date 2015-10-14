@@ -36,16 +36,18 @@ public class PatientUpdateAdvice implements AfterReturningAdvice {
 				// Does this patient have an ECID? 
 				boolean hasEcid = false;
 				for(PatientIdentifier pid : patient.getIdentifiers())
-					hasEcid |= pid.getIdentifierType().getName().equals(this.m_configuration.getEcidRoot());
+					hasEcid |= pid.getIdentifierType().getName().equals(this.m_configuration.getEcidRoot()) ||
+							pid.getIdentifierType().getUuid().equals(this.m_configuration.getEcidRoot());
 						
 				HealthInformationExchangeService hieService = Context.getService(HealthInformationExchangeService.class);
-				if(hasEcid)
+				if(hasEcid) // notify update
 					hieService.updatePatient(patient);
 				else
 				{
 					hieService.exportPatient(patient);
 					PatientIdentifier pid = hieService.resolvePatientIdentifier(patient, this.m_configuration.getEcidRoot());
 					patient.addIdentifier(pid);
+					Context.getPatientService().savePatient(patient);
 				}
 			}
 			catch(HealthInformationExchangeException e)
