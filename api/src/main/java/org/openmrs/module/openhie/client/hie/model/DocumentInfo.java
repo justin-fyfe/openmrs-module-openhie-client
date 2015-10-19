@@ -1,5 +1,6 @@
 package org.openmrs.module.openhie.client.hie.model;
 
+import java.util.Date;
 import java.util.List;
 
 import org.openmrs.Encounter;
@@ -33,9 +34,29 @@ public class DocumentInfo {
 	private String formatCode;
 	// Class code
 	private String classCode;
+	// Creation time
+	private Date creationTime;
 	
     
+	/**
+	 * Gets the creation time
+	 * @return
+	 */
+    public Date getCreationTime() {
+		return this.creationTime;
+	}
+
+
     /**
+     * Sets the creation time
+     * @param creationTime
+     */
+	public void setCreationTime(Date creationTime) {
+		this.creationTime = creationTime;
+	}
+
+
+	/**
      * @return the repositoryId
      */
     public String getRepositoryId() {

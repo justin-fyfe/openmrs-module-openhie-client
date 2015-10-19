@@ -33,11 +33,13 @@
 	 	<property name="mappings">
 	 		<props>
 	 			<prop key="**/hieDocumentConsumer.portlet">hieDocumentConsumerController</prop>
+	 			<prop key="**/hieDocumentImport.form">hieDocumentImportController</prop>
 <!-- 	 			<prop key="**/vaccinationTab.portlet">vaccinationTabController</prop>-->
 	 		</props>
 	 	</property>
 	 </bean>
 			
 	<bean id="hieDocumentConsumerController" class="org.openmrs.module.openhie.client.web.controller.HieDocumentConsumerController"/>
+	<bean id="hieDocumentImportController" class="org.openmrs.module.openhie.client.web.controller.HieDocumentImportController"/>
 	<!-- <bean id="vaccinationTabController" class="org.openmrs.module.openhie.client.web.controller.VaccinationTabController"/>-->
 </beans>

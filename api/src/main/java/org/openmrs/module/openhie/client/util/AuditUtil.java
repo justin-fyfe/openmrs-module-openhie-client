@@ -44,6 +44,7 @@ import org.openmrs.Role;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.openhie.client.api.impl.HealthInformationExchangeServiceImpl;
+import org.openmrs.module.openhie.client.exception.HealthInformationExchangeException;
 import org.openmrs.module.shr.atna.api.AtnaAuditService;
 import org.openmrs.module.shr.atna.configuration.AtnaConfiguration;
 import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
@@ -134,11 +135,11 @@ public class AuditUtil {
 			implementation.setImplementationId("ANON");
 		}
 
-		String altUserId = String.format("%s\\%s", implementation.getImplementationId(), currentUser.getUsername()),
+		String altUserId = String.format("%s\\%s", implementation.getImplementationId(), currentUser.getName()),
 				userName = String.format("%s, %s", currentUser.getFamilyName(), currentUser.getGivenName());
 		List<RoleIDCode> roles = new ArrayList<AuditMessages.RoleIDCode>();
 		for(Role rol : currentUser.getAllRoles())
-			roles.add(new RoleIDCode(rol.getName(), this.m_configuration.getShrRoot(), rol.getDescription()));
+			roles.add(new RoleIDCode(rol.getName(), null, null));
 		
 		return AuditMessages.createActiveParticipant(currentUser.getUsername(), altUserId, userName, true, null, null, null, roles.toArray(new RoleIDCode[] {}));
 	}
@@ -169,7 +170,7 @@ public class AuditUtil {
 		AuditMessage retVal =  this.createAuditMessageQuery(EventTypeCode.ITI_21_PatientDemographicsQuery, results != null && results.size() > 0);
 		retVal.getActiveParticipant().add(this.createHumanRequestor());
 		retVal.getActiveParticipant().add(this.createSourceParticipant(String.format("%s|%s", query.getMSH().getSendingApplication().getNamespaceID(), query.getMSH().getSendingFacility().getNamespaceID())));
-		retVal.getActiveParticipant().add(AuditMessages.createActiveParticipant(null, null, null, false, remoteHost, "1", null, AuditMessages.RoleIDCode.Destination));
+		retVal.getActiveParticipant().add(AuditMessages.createActiveParticipant(String.format("%s|%s", query.getMSH().getReceivingApplication().getNamespaceID(), query.getMSH().getReceivingFacility().getNamespaceID()), null, null, false, remoteHost, "1", null, AuditMessages.RoleIDCode.Destination));
 		
 		// Add objects
 		PipeParser parser = new PipeParser();
@@ -201,7 +202,7 @@ public class AuditUtil {
 					continue;
 				retVal.getParticipantObjectIdentification().add(
 					AuditMessages.createParticipantObjectIdentification(
-							String.format("%s^^^&%s&ISO", res.getPatientIdentifier().getIdentifier(), res.getPatientIdentifier().getIdentifierType().getName()), 
+							String.format("%s^^^&%s&ISO", res.getPatientIdentifier().getIdentifier(), res.getPatientIdentifier().getIdentifierType().getUuid()), 
 							ParticipantObjectIDTypeCode.PatientNumber, 
 							null, 
 							null, 
@@ -283,4 +284,116 @@ public class AuditUtil {
 		return retVal;
 	}
 	
+	/**
+	 * Create patient search 
+	 * @return
+	 * @throws HealthInformationExchangeException 
+	 */
+	public AuditMessage createPatientResolve(List<Patient> results, String remoteHost, Message query) throws HealthInformationExchangeException
+	{
+		try
+		{
+			Terser terser = new Terser(query);
+			AuditMessage retVal =  this.createAuditMessageQuery(EventTypeCode.ITI_9_PIXQuery, results != null && results.size() > 0);
+			retVal.getActiveParticipant().add(this.createHumanRequestor());
+			retVal.getActiveParticipant().add(this.createSourceParticipant(String.format("%s|%s", terser.get("/MSH-3"), terser.get("/MSH-4"))));
+			retVal.getActiveParticipant().add(AuditMessages.createActiveParticipant(String.format("%s|%s", terser.get("/MSH-5"), terser.get("/MSH-6")), null, null, false, remoteHost, "1", null, AuditMessages.RoleIDCode.Destination));
+			
+			// Add objects
+			PipeParser parser = new PipeParser();
+			try {
+				retVal.getParticipantObjectIdentification().add(
+						AuditMessages.createParticipantObjectIdentification(
+								terser.get("/MSH-10"), 
+								new ParticipantObjectIDTypeCode("ITI-9", "IHE Transactions", "PIX Query"), 
+								null, 
+								parser.encode(query).getBytes(), 
+								"2", 
+								"24", 
+								null, 
+								null, 
+								null, 
+								AuditMessages.createParticipantObjectDetail("MSH-10", terser.get("/MSH-10").getBytes())
+							));
+			} catch (HL7Exception e) {
+				log.error("Error constructing query:", e);
+			}
+			
+			// Results
+			if(results != null)
+				for(Patient res : results)
+				{
+					if(res == null ||
+							res.getPatientIdentifier() == null)
+						continue;
+					retVal.getParticipantObjectIdentification().add(
+						AuditMessages.createParticipantObjectIdentification(
+								String.format("%s^^^&%s&ISO", res.getPatientIdentifier().getIdentifier(), res.getPatientIdentifier().getIdentifierType().getUuid()), 
+								ParticipantObjectIDTypeCode.PatientNumber, 
+								null, 
+								null, 
+								"1", 
+								"1", 
+								null, 
+								null, 
+								null
+						)
+					);
+					
+				}
+			
+			return retVal;
+		}
+		catch(Exception e)
+		{
+			log.error("Error creating audit", e);
+			throw new HealthInformationExchangeException("Error creating audit", e);
+		}
+	}
+
+	/**
+	 * Create patient search 
+	 * @return
+	 * @throws HealthInformationExchangeException 
+	 */
+	public AuditMessage createPatientAdmit(Patient patient, String remoteHost, Message query, Boolean success) throws HealthInformationExchangeException
+	{
+		try
+		{
+			Terser terser = new Terser(query);
+			AuditMessage retVal =  this.createAuditMessageQuery(EventTypeCode.ITI_8_PatientIdentityFeed, success);
+			if(terser.get("/MSH-9-2").equals("A08"))
+				retVal.getEventIdentification().setEventActionCode("U");
+			else
+				retVal.getEventIdentification().setEventActionCode("C");
+			
+			retVal.getActiveParticipant().add(this.createHumanRequestor());
+			retVal.getActiveParticipant().add(this.createSourceParticipant(String.format("%s|%s", terser.get("/MSH-3"), terser.get("/MSH-4"))));
+			retVal.getActiveParticipant().add(AuditMessages.createActiveParticipant(String.format("%s|%s", terser.get("/MSH-5"), terser.get("/MSH-6")), null, null, false, remoteHost, "1", null, AuditMessages.RoleIDCode.Destination));
+			
+			if(patient != null)
+				retVal.getParticipantObjectIdentification().add(
+					AuditMessages.createParticipantObjectIdentification(
+							String.format("%s^^^&%s&ISO", patient.getId(), this.m_configuration.getPatientRoot()), 
+							ParticipantObjectIDTypeCode.PatientNumber, 
+							null, 
+							null, 
+							"1", 
+							"1", 
+							null, 
+							null, 
+							null	
+					)
+				);
+					
+			
+			return retVal;
+		}
+		catch(Exception e)
+		{
+			log.error("Error creating audit", e);
+			throw new HealthInformationExchangeException("Error creating audit", e);
+		}
+	}
+
 }

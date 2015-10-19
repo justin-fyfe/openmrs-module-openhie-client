@@ -80,6 +80,29 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 	}
 
 	/**
+	 * Update patient ECID 
+	 * @throws HealthInformationExchangeException 
+	 */
+	public void updatePatientEcid(Patient patient) throws HealthInformationExchangeException
+	{
+		// Resolve patient identifier
+		PatientIdentifier pid = this.resolvePatientIdentifier(patient, this.m_cdaConfiguration.getEcidRoot());
+		if(pid != null)
+		{
+			PatientIdentifier existingPid = patient.getPatientIdentifier(pid.getIdentifierType());
+			if(existingPid != null && !existingPid.getIdentifier().equals(pid.getIdentifier()))
+					existingPid.setIdentifier(pid.getIdentifier());
+			else if(existingPid == null)
+				patient.addIdentifier(pid);
+			else
+				return;
+			Context.getPatientService().savePatient(patient);	
+		}
+		else
+			throw new HealthInformationExchangeException("Patient has been removed from the HIE");
+	}
+	
+	/**
 	 * Search the PDQ supplier for the specified patient data
 	 * @throws HealthInformationExchangeException 
 	 */
@@ -350,13 +373,17 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 			IXmlStructureFormatter formatter = EverestUtil.createFormatter();
 			
 			byte[] documentContent = this.fetchDocument(document);
-	
+			log.debug(String.format("Fetched %s bytes", documentContent.length));
 			ByteArrayInputStream bis = new ByteArrayInputStream(documentContent);
+			log.debug("Starting import of document");
 			Visit visit = importer.processCdaDocument((ClinicalDocument)formatter.parse(bis).getStructure());
+			log.debug("Import complete");
+			
 			return visit.getEncounters().iterator().next();
 		}
 		catch(Exception e)
 		{
+			log.error("Error importing document", e);
 			throw new HealthInformationExchangeException(e);
 		}
 	}
@@ -372,6 +399,7 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 		ProvideAndRegisterDocumentSetRequestType request = null;
 		try
 		{
+			this.updatePatientEcid(info.getPatient());
 			request = this.m_messageUtil.createProvdeAndRegisterDocument(documentContent, info);
 			RegistryResponseType response = this.m_messageUtil.sendProvideAndRegister(request);
 			if(!response.getStatus().contains("Success"))
@@ -408,21 +436,42 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 	public void exportPatient(Patient patient) throws HealthInformationExchangeException {
 		// TODO Auto-generated method stub
 		
+		Message admitMessage = null;
+		AtnaAuditService auditSvc = Context.getService(AtnaAuditService.class);
+		AuditMessage auditMessage = null;
+
 		try
 		{
-			Message admitMessage = this.m_messageUtil.createAdmit(patient),
-					response = this.m_messageUtil.sendMessage(admitMessage, this.m_configuration.getPixEndpoint(), this.m_configuration.getPixPort());
+			admitMessage = this.m_messageUtil.createAdmit(patient);
+			Message response = this.m_messageUtil.sendMessage(admitMessage, this.m_configuration.getPixEndpoint(), this.m_configuration.getPixPort());
 			
 			Terser terser = new Terser(response);
 			if(!terser.get("/MSA-1").endsWith("A"))
 				throw new HealthInformationExchangeException("Error querying data");
+			auditMessage = AuditUtil.getInstance().createPatientAdmit(patient, this.m_configuration.getPixEndpoint(), admitMessage, true);
 
 		}
 		catch(Exception e)
 		{
 			log.error(e);
+			if(auditMessage != null)
+				auditMessage = AuditUtil.getInstance().createPatientAdmit(patient, this.m_configuration.getPixEndpoint(), admitMessage, false);
+
 			throw new HealthInformationExchangeException(e);
 		}
+		finally
+		{
+			if(auditMessage != null)
+				try
+				{
+					auditSvc.getLogger().write(Calendar.getInstance(), auditMessage);
+				}
+				catch(Exception e)
+				{
+					log.error(e);
+				}
+		}	
+
 	}
 
 	/**
@@ -431,13 +480,19 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 	 */
 	public PatientIdentifier resolvePatientIdentifier(Patient patient,
 			String toAssigningAuthority) throws HealthInformationExchangeException {
+		
+		AtnaAuditService auditSvc = Context.getService(AtnaAuditService.class);
+		AuditMessage auditMessage = null;
+
+		Message request = null;
 		try
 		{
-			Message request = this.m_messageUtil.createPixMessage(patient, toAssigningAuthority),
-					response = this.m_messageUtil.sendMessage(request, this.m_configuration.getPixEndpoint(), this.m_configuration.getPixPort());
+			request = this.m_messageUtil.createPixMessage(patient, toAssigningAuthority);
+			Message response = this.m_messageUtil.sendMessage(request, this.m_configuration.getPixEndpoint(), this.m_configuration.getPixPort());
 			
 			// Interpret the result
 			List<Patient> candidate = this.m_messageUtil.interpretPIDSegments(response);
+			auditMessage = AuditUtil.getInstance().createPatientResolve(candidate, this.m_configuration.getPixEndpoint(), request);
 			if(candidate.size() == 0)
 				return null;
 			else
@@ -446,7 +501,22 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 		catch(Exception e)
 		{
 			log.error(e);
+			if(request != null)
+				auditMessage = AuditUtil.getInstance().createPatientResolve(null, this.m_configuration.getPixEndpoint(), request);
+
 			throw new HealthInformationExchangeException(e);
+		}
+		finally
+		{
+			if(auditMessage != null)
+				try
+				{
+					auditSvc.getLogger().write(Calendar.getInstance(), auditMessage);
+				}
+				catch(Exception e)
+				{
+					log.error(e);
+				}
 		}
 	}
 
@@ -465,7 +535,8 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 			String fmtCode = null;
 			if(formatCode != null && formatCodingScheme != null)
 				fmtCode = String.format("%s^^%s", formatCode, formatCodingScheme);
-			
+			this.updatePatientEcid(patientInfo);
+
 			AdhocQueryResponse queryResponse = this.m_messageUtil.sendXdsQuery(this.m_messageUtil.createXdsQuery(patientInfo, fmtCode, sinceDate));
 			return this.m_messageUtil.interpretAdHocQueryResponse(queryResponse, patientInfo, oddOnly);
 		}
@@ -506,22 +577,42 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 	public void updatePatient(Patient patient) throws HealthInformationExchangeException {
 		
 		// TODO Auto-generated method stub
-		
+		AtnaAuditService auditSvc = Context.getService(AtnaAuditService.class);
+		AuditMessage auditMessage = null;
+
+		Message admitMessage = null;
+		try
+		{
+			admitMessage = this.m_messageUtil.createUpdate(patient);
+			Message	response = this.m_messageUtil.sendMessage(admitMessage, this.m_configuration.getPixEndpoint(), this.m_configuration.getPixPort());
+			
+			Terser terser = new Terser(response);
+			if(!terser.get("/MSA-1").endsWith("A"))
+				throw new HealthInformationExchangeException("Error querying data");
+			auditMessage = AuditUtil.getInstance().createPatientAdmit(patient, this.m_configuration.getPixEndpoint(), admitMessage, true);
+
+
+		}
+		catch(Exception e)
+		{
+			log.error(e);
+			if(auditMessage != null)
+				auditMessage = AuditUtil.getInstance().createPatientAdmit(patient, this.m_configuration.getPixEndpoint(), admitMessage, false);
+
+			throw new HealthInformationExchangeException(e);
+		}
+		finally
+		{
+			if(auditMessage != null)
 				try
 				{
-					Message admitMessage = this.m_messageUtil.createUpdate(patient),
-							response = this.m_messageUtil.sendMessage(admitMessage, this.m_configuration.getPixEndpoint(), this.m_configuration.getPixPort());
-					
-					Terser terser = new Terser(response);
-					if(!terser.get("/MSA-1").endsWith("A"))
-						throw new HealthInformationExchangeException("Error querying data");
-
+					auditSvc.getLogger().write(Calendar.getInstance(), auditMessage);
 				}
 				catch(Exception e)
 				{
 					log.error(e);
-					throw new HealthInformationExchangeException(e);
-				}		
+				}
+		}	
 		
     }
 

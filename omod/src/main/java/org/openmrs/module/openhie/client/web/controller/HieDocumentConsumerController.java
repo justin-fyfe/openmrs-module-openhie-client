@@ -16,7 +16,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.openhie.client.api.HealthInformationExchangeService;
 import org.openmrs.module.openhie.client.exception.HealthInformationExchangeException;
 import org.openmrs.module.openhie.client.hie.model.DocumentInfo;
-import org.openmrs.module.openhie.client.web.model.Document;
+import org.openmrs.module.openhie.client.web.model.DocumentModel;
 import org.openmrs.module.shr.cdahandler.CdaImporter;
 import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
 import org.openmrs.module.shr.cdahandler.everest.EverestUtil;
@@ -51,26 +51,10 @@ public class HieDocumentConsumerController extends PortletController {
 		
 		// Get the patient record from the HIE
 		try {
-			DocumentInfo docInfo = new DocumentInfo();
-			if(request.getMethod().equals("POST") && request.getParameter("documentId") != null)
-			{
-				docInfo.setUniqueId(request.getParameter("documentId"));
-				docInfo.setRepositoryId(request.getParameter("repositoryId"));
-				hieService.importDocument(docInfo);
-				model.put("wasImported", true);
-			}
-			else
-			{
-				// Now we have to look for documents
-				List<DocumentInfo> results = hieService.queryDocuments(patient, true, null, null, null);
-				if(results.size() > 0)
-					docInfo = results.get(0);
-			}
-			
-			model.put("documentUid", docInfo.getUniqueId());
-			model.put("repositoryId", docInfo.getRepositoryId());
-			byte[] documentContent = hieService.fetchDocument(docInfo);
-			model.put("document", Document.createInstance(documentContent));
+
+			// Now we have to look for documents
+			List<DocumentInfo> results = hieService.queryDocuments(patient, false, null, null, null);
+			model.put("documents", results);
 			
 		} catch (Exception e) {
 			model.put("error", e.getMessage());

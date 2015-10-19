@@ -41,7 +41,10 @@ public class PatientUpdateAdvice implements AfterReturningAdvice {
 						
 				HealthInformationExchangeService hieService = Context.getService(HealthInformationExchangeService.class);
 				if(hasEcid) // notify update
+				{
 					hieService.updatePatient(patient);
+					hieService.updatePatientEcid(patient);
+				}
 				else
 				{
 					hieService.exportPatient(patient);

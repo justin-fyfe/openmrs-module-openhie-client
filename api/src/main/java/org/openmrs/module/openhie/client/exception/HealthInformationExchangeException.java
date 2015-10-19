@@ -6,6 +6,7 @@ package org.openmrs.module.openhie.client.exception;
  * @author Justin
  *
  */
+
 public class HealthInformationExchangeException extends Exception {
 
 	/**

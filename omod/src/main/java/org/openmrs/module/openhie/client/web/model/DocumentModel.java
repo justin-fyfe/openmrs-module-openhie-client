@@ -15,35 +15,36 @@ import javax.xml.transform.stream.StreamSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public final class Document {
+public final class DocumentModel {
 			
 	private String m_html;
-	
-	private static Log log = LogFactory.getLog(Document.class);
+
+	private static Log log = LogFactory.getLog(DocumentModel.class);
 	/**
 	 * Can only be created by static method
 	 */
-	private Document() {
+	private DocumentModel() {
 		
 	}
+	
 	/**
 	 * Transform the CDA to XML
 	 * @param in
 	 * @throws TransformerException
 	 */
-	public static Document createInstance(byte[] documentData) {
+	public static DocumentModel createInstance(byte[] documentData) {
 		InputStream in = null;
 		try
 		{
 			in = new ByteArrayInputStream(documentData);
 			TransformerFactory factory = TransformerFactory.newInstance();
-			Source xslt = new StreamSource(Document.class.getClassLoader().getResourceAsStream("cda.xsl"));
+			Source xslt = new StreamSource(DocumentModel.class.getClassLoader().getResourceAsStream("cda.xsl"));
 			Transformer transformer = factory.newTransformer(xslt);
 			
 			Source text = new StreamSource(in);
 			StringWriter sw = new StringWriter();
 			transformer.transform(text, new StreamResult(sw));
-			Document retVal = new Document();
+			DocumentModel retVal = new DocumentModel();
 			retVal.m_html = sw.toString();
 			retVal.applyFormatting();
 			log.error(retVal.m_html);

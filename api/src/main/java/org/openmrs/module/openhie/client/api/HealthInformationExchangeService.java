@@ -9,11 +9,13 @@ import org.openmrs.PatientIdentifier;
 import org.openmrs.api.OpenmrsService;
 import org.openmrs.module.openhie.client.exception.HealthInformationExchangeException;
 import org.openmrs.module.openhie.client.hie.model.DocumentInfo;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Implementation of the HealthInformationExchangeService
  * @author Justin
  */
+@Transactional(rollbackFor=HealthInformationExchangeException.class)
 public interface HealthInformationExchangeService extends OpenmrsService {
 
 	/**
@@ -35,6 +37,11 @@ public interface HealthInformationExchangeService extends OpenmrsService {
 	 */
 	public PatientIdentifier resolvePatientIdentifier(Patient patient, String toAssigningAuthority) throws HealthInformationExchangeException;
 	
+	/**
+	 * Forces an update of the patient's ECID data
+	 * @param patient
+	 */
+	public void updatePatientEcid(Patient patient) throws HealthInformationExchangeException;
 	
 	/**
 	 * Import the specified patient data from the PDQ supplier

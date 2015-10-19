@@ -522,8 +522,9 @@ public final class MessageUtil {
 		// Find the ecid
 		String ecid = null;
 		for(PatientIdentifier id : patient.getIdentifiers())
-			if(id.getIdentifierType().getName().equals(this.m_cdaConfiguration.getEcidRoot()))
-				ecid = String.format("%s^^^&%s&ISO", id.getIdentifier(), id.getIdentifierType().getName());
+			if(id.getIdentifierType().getName().equals(this.m_cdaConfiguration.getEcidRoot()) || 
+					id.getIdentifierType().getUuid().equals(this.m_cdaConfiguration.getEcidRoot()))
+				ecid = String.format("%s^^^&%s&ISO", id.getIdentifier(), this.m_cdaConfiguration.getEcidRoot());
 		
 		if(ecid == null)
 			throw new HealthInformationExchangeException("No enterprise identifier found in patient supplied");
@@ -636,6 +637,8 @@ public final class MessageUtil {
 					continue;
 					
 				DocumentInfo docInfo = new DocumentInfo();
+				TS ts = TS.valueOf(InfosetUtil.getSlotValue(eo.getSlot(), XDSConstants.SLOT_NAME_CREATION_TIME, null));
+				docInfo.setCreationTime(ts.getDateValue().getTime());
 				docInfo.setHash(InfosetUtil.getSlotValue(eo.getSlot(), XDSConstants.SLOT_NAME_HASH, "").getBytes());
 				docInfo.setRepositoryId(InfosetUtil.getSlotValue(eo.getSlot(), XDSConstants.SLOT_NAME_REPOSITORY_UNIQUE_ID, ""));
 				docInfo.setMimeType(eo.getMimeType());
