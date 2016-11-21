@@ -14,11 +14,16 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.ClinicalDocument;
 
 public final class DocumentModel {
 			
 	private String m_html;
-
+	private ClinicalDocument m_doc;
+	private String m_formatCode;
+	private String m_typeCode;
+	private byte[] m_data;
+	
 	private static Log log = LogFactory.getLog(DocumentModel.class);
 	/**
 	 * Can only be created by static method
@@ -26,13 +31,27 @@ public final class DocumentModel {
 	private DocumentModel() {
 		
 	}
+
+	public String getFormatCode() { return this.m_formatCode; }
+	public String getTypeCode() { return this.m_typeCode; }
+	public ClinicalDocument getDocument() { return this.m_doc; }
+	public byte[] getData() { return this.m_data; }
+	
+	/**
+	 * Create representation on bare data
+	 * @param documentData
+	 * @return
+	 */
+	public static DocumentModel createInstance(byte[] documentData) {
+		return createInstance(documentData, null, null, null);
+	}
 	
 	/**
 	 * Transform the CDA to XML
 	 * @param in
 	 * @throws TransformerException
 	 */
-	public static DocumentModel createInstance(byte[] documentData) {
+	public static DocumentModel createInstance(byte[] documentData, String typeCode, String formatCode, ClinicalDocument doc) {
 		InputStream in = null;
 		try
 		{
@@ -48,6 +67,10 @@ public final class DocumentModel {
 			retVal.m_html = sw.toString();
 			retVal.applyFormatting();
 			log.error(retVal.m_html);
+			retVal.m_typeCode = typeCode;
+			retVal.m_formatCode = formatCode;
+			retVal.m_doc = doc;
+			retVal.m_data = documentData;
 			return retVal;
 		} catch (TransformerException e) {
 			log.error(e);

@@ -1,6 +1,7 @@
 package org.openmrs.module.openhie.client.aop;
 
 import java.lang.reflect.Method;
+import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,16 +41,17 @@ public class PatientUpdateAdvice implements AfterReturningAdvice {
 							pid.getIdentifierType().getUuid().equals(this.m_configuration.getEcidRoot());
 						
 				HealthInformationExchangeService hieService = Context.getService(HealthInformationExchangeService.class);
-				if(hasEcid) // notify update
+				if(hasEcid && patient.getDateChanged() != null) // notify update
 				{
 					hieService.updatePatient(patient);
 					hieService.updatePatientEcid(patient);
 				}
-				else
+				else if(!hasEcid) // create case
 				{
 					hieService.exportPatient(patient);
 					PatientIdentifier pid = hieService.resolvePatientIdentifier(patient, this.m_configuration.getEcidRoot());
 					patient.addIdentifier(pid);
+					patient.setDateChanged(new Date());
 					Context.getPatientService().savePatient(patient);
 				}
 			}

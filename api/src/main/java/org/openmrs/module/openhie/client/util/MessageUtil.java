@@ -50,6 +50,7 @@ import org.openmrs.PersonAddress;
 import org.openmrs.PersonAttribute;
 import org.openmrs.PersonAttributeType;
 import org.openmrs.PersonName;
+import org.openmrs.Provider;
 import org.openmrs.Relationship;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.openhie.client.configuration.HealthInformationExchangeConfiguration;
@@ -652,6 +653,8 @@ public final class MessageUtil {
 				for(ClassificationType ct : eo.getClassification())
 					if(ct.getClassificationScheme().equals(XDSConstants.UUID_XDSDocumentEntry_classCode))
 						docInfo.setClassCode(ct.getNodeRepresentation());
+					else if(ct.getClassificationScheme().equals(XDSConstants.UUID_XDSDocumentEntry_typeCode))
+						docInfo.setTypeCode(ct.getNodeRepresentation());
 					else if(ct.getClassificationScheme().equals(XDSConstants.UUID_XDSDocumentEntry_formatCode))
 						docInfo.setFormatCode(ct.getNodeRepresentation());
 				retVal.add(docInfo);
@@ -674,7 +677,7 @@ public final class MessageUtil {
 		registryRequest.setRegistryObjectList(new RegistryObjectListType());
 		ExtrinsicObjectType oddRegistryObject = new ExtrinsicObjectType();
 		// ODD
-		oddRegistryObject.setId(String.format("Document%s", info.getRelatedEncounter().getId().toString()));
+		oddRegistryObject.setId("Document01");
 		oddRegistryObject.setMimeType("text/xml");
 //		oddRegistryObject.setObjectType(XDSConstants.UUID_XDSDocumentEntry);
 		oddRegistryObject.setName(new InternationalStringType());
@@ -684,13 +687,15 @@ public final class MessageUtil {
 		// Get the earliest time something occurred and the latest
 		Date lastEncounter = new Date(0),
 				firstEncounter = new Date();
-		for(Obs el : info.getRelatedEncounter().getObs())
-		{
-			if(el.getObsDatetime().before(firstEncounter))
-				firstEncounter = el.getEncounter().getVisit().getStartDatetime();
-			if(el.getObsDatetime().after(lastEncounter))
-				lastEncounter = el.getEncounter().getVisit().getStopDatetime();
-		}
+		
+		if(info.getRelatedEncounter() != null)
+			for(Obs el : info.getRelatedEncounter().getObs())
+			{
+				if(el.getObsDatetime().before(firstEncounter))
+					firstEncounter = el.getEncounter().getVisit().getStartDatetime();
+				if(el.getObsDatetime().after(lastEncounter))
+					lastEncounter = el.getEncounter().getVisit().getStopDatetime();
+			}
 		
 		TS firstEncounterTs = CdaDataUtil.getInstance().createTS(firstEncounter),
 				lastEncounterTs = CdaDataUtil.getInstance().createTS(lastEncounter),
@@ -701,7 +706,7 @@ public final class MessageUtil {
 		InfosetUtil.addOrOverwriteSlot(oddRegistryObject, XDSConstants.SLOT_NAME_SERVICE_START_TIME, firstEncounterTs.getValue());
 		InfosetUtil.addOrOverwriteSlot(oddRegistryObject, XDSConstants.SLOT_NAME_SERVICE_STOP_TIME, lastEncounterTs.getValue());
 		
-		oddRegistryObject.setObjectType("urn:uuid:34268e47-fdf5-41a6-ba33-82133c465248");
+		oddRegistryObject.setObjectType("urn:uuid:7edca82f-054d-47f2-a032-9b2a5b5186c1");
 		
 		// Add source patient information
 		TS patientDob = CdaDataUtil.getInstance().createTS(info.getPatient().getBirthdate());
@@ -717,7 +722,7 @@ public final class MessageUtil {
 		InfosetUtil.addOrOverwriteSlot(oddRegistryObject, XDSConstants.SLOT_NAME_CREATION_TIME, new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
 		
 		// Unique identifier
-		XdsUtil.getInstance().addExtenalIdentifier(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_uniqueId, String.format("%s.%s", this.m_cdaConfiguration.getEncounterRoot(), info.getRelatedEncounter().getId()), "XDSDocumentEntry.uniqueId");
+		XdsUtil.getInstance().addExtenalIdentifier(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_uniqueId, String.format("2.25.%s", UUID.randomUUID().getLeastSignificantBits()), "XDSDocumentEntry.uniqueId");
 		XdsUtil.getInstance().addExtenalIdentifier(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_patientId, XdsUtil.getInstance().getPatientIdentifier(info.getPatient()), "XDSDocumentEntry.patientId");
 		
 		// Set classifications
@@ -726,22 +731,21 @@ public final class MessageUtil {
 		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_formatCode, info.getFormatCode(), "1.3.6.1.4.1.19376.1.2.3", "XDSDocumentEntry.formatCode");
 		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_healthCareFacilityTypeCode, "Not Available", "Connect-a-thon healthcareFacilityTypeCodes", "XDSDocumentEntry.healthCareFacilityTypeCode");
 		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_practiceSettingCode, "Not Available", "Connect-a-thon practiceSettingCodes", "UUID_XDSDocumentEntry.practiceSettingCode");
-		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_typeCode, info.getClassCode(), "LOINC", "XDSDocumentEntry.typeCode");
+		XdsUtil.getInstance().addCodedValueClassification(oddRegistryObject, XDSConstants.UUID_XDSDocumentEntry_typeCode, info.getTypeCode(), "LOINC", "XDSDocumentEntry.typeCode");
 		
 		// Create the submission set
 		TS now = TS.now();
 		now.setDateValuePrecision(TS.SECONDNOTIMEZONE);
 		
 		RegistryPackageType regPackage = new RegistryPackageType();
-		regPackage.setId(String.format("SubmissionSet%s", info.getRelatedEncounter().getId().toString()));
+		regPackage.setId("SubmissionSet01");
 		InfosetUtil.addOrOverwriteSlot(regPackage, XDSConstants.SLOT_NAME_SUBMISSION_TIME, now.getValue());
 		regPackage.setName(oddRegistryObject.getName());
 		XdsUtil.getInstance().addCodedValueClassification(regPackage, XDSConstants.UUID_XDSSubmissionSet_contentTypeCode, info.getClassCode(), "LOINC", "XDSSubmissionSet.contentTypeCode");
 		
 		// Submission set external identifiers
-
-		XdsUtil.getInstance().addExtenalIdentifier(regPackage, XDSConstants.UUID_XDSSubmissionSet_uniqueId, this.m_cdaConfiguration.getEncounterRoot() + "." + info.getRelatedEncounter().getId().toString() + ".1." + now.getValue(), "XDSSubmissionSet.uniqueId");
-		XdsUtil.getInstance().addExtenalIdentifier(regPackage, XDSConstants.UUID_XDSSubmissionSet_sourceId, this.m_cdaConfiguration.getEncounterRoot() + "." + info.getRelatedEncounter().getId().toString(), "XDSSubmissionSet.sourceId");
+		XdsUtil.getInstance().addExtenalIdentifier(regPackage, XDSConstants.UUID_XDSSubmissionSet_uniqueId, String.format("2.25.%s", UUID.randomUUID().getLeastSignificantBits()), "XDSSubmissionSet.uniqueId");
+		XdsUtil.getInstance().addExtenalIdentifier(regPackage, XDSConstants.UUID_XDSSubmissionSet_sourceId, String.format("2.25.%s", UUID.randomUUID().getLeastSignificantBits()), "XDSSubmissionSet.sourceId");
 		XdsUtil.getInstance().addExtenalIdentifier(regPackage, XDSConstants.UUID_XDSSubmissionSet_patientId, XdsUtil.getInstance().getPatientIdentifier(info.getPatient()), "XDSSubmissionSet.patientId");
 		
 		// Add the eo to the submission
@@ -769,7 +773,7 @@ public final class MessageUtil {
 					ClassificationType.class, 
 					new ClassificationType() {{
 						setId("cl01");
-						setClassifiedObject(String.format("SubmissionSet%s", info.getRelatedEncounter().getId().toString()));
+						setClassifiedObject("SubmissionSet01");
 						setClassificationNode(XDSConstants.UUID_XDSSubmissionSet);
 					}}
 				)
@@ -779,8 +783,8 @@ public final class MessageUtil {
 		AssociationType1 association = 	new AssociationType1();
 		association.setId("as01");
 		association.setAssociationType("HasMember");
-		association.setSourceObject(String.format("SubmissionSet%s", info.getRelatedEncounter().getId().toString()));
-		association.setTargetObject(String.format("Document%s", info.getRelatedEncounter().getId().toString()));
+		association.setSourceObject("SubmissionSet01");
+		association.setTargetObject("Document01");
 		InfosetUtil.addOrOverwriteSlot(association, XDSConstants.SLOT_NAME_SUBMISSIONSET_STATUS, "Original");
 		registryRequest.getRegistryObjectList().getIdentifiable().add(
 			new JAXBElement<AssociationType1>(
@@ -789,10 +793,32 @@ public final class MessageUtil {
 					association)
 			);
 
+		// Add author
+		List<String> authors = new ArrayList<String>();
+
+		for(Provider pvdr : info.getAuthors())
+		{
+			ClassificationType authorClass = new ClassificationType();
+			authorClass.setClassificationScheme(XDSConstants.UUID_XDSDocumentEntry_author);
+			authorClass.setClassifiedObject(oddRegistryObject.getId());
+			authorClass.setId(String.format("Classification_%s", UUID.randomUUID().toString()));
+			
+			String authorText = String.format("%s^%s^%s^^^^^^&%s&ISO", pvdr.getId(), pvdr.getPerson().getFamilyName(), pvdr.getPerson().getGivenName(), this.m_cdaConfiguration.getProviderRoot());
+			if(authors.contains(authorText))
+				continue;
+			else
+				authors.add(authorText);
+			
+			InfosetUtil.addOrOverwriteSlot(authorClass, XDSConstants.SLOT_NAME_AUTHOR_PERSON, authorText);
+
+			oddRegistryObject.getClassification().add(authorClass);
+		}
+					
 		Document doc = new Document();
 		doc.setId(oddRegistryObject.getId());
 		doc.setValue(documentContent);
 		retVal.getDocument().add(doc);
+		
 		return retVal;
     }
 

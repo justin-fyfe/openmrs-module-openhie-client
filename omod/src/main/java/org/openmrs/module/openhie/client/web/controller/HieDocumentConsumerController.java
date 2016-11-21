@@ -42,6 +42,7 @@ public class HieDocumentConsumerController extends PortletController {
 	@Override
 	protected void populateModel(HttpServletRequest request,
 			Map<String, Object> model) {
+		
 		log.debug("Populating model");
 		HealthInformationExchangeService hieService = Context.getService(HealthInformationExchangeService.class);
 		// TODO Auto-generated method stub

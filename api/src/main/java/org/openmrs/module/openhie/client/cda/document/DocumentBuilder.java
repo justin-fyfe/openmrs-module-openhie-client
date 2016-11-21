@@ -22,9 +22,21 @@ public interface DocumentBuilder {
 	public void setEncounterEvent(Encounter enc);
 	
 	/**
+	 * Get the classcode
+	 * @return
+	 */
+	public String getTypeCode();
+	
+	/**
+	 * Get the format code
+	 * @return
+	 */
+	public String getFormatCode();
+	
+	/**
 	 * Get the encounter event
 	 */
-	public Encounter getEncounterEvent(Encounter enc);
+	public Encounter getEncounterEvent();
 	
 	/**
 	 * Set the record target of this document

@@ -448,6 +448,272 @@
           </entry>
         </section>
       </component>
+      <component typeCode="COMP" contextConductionInd="true">
+        <section classCode="DOCSECT" moodCode="EVN">
+          <templateId root="2.16.840.1.113883.10.20.1.11" />
+          <templateId root="1.3.6.1.4.1.19376.1.5.3.1.3.6" />
+          <id root="D1D08E80-7984-466D-9A8F-2E444604FD68" />
+          <code code="11450-4" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="PROBLEM LIST" />
+          <title language="en-CA">Active Problems</title>
+          <text language="en-CA">
+            <list>
+              <item>
+                ACTIVE PROBLEM ({20121216153643.966-0500 ..}) <list>
+                  <item ID="idbba9d">Other parasitologically confirmed malaria (Symptom)</item>
+                </list>
+              </item>
+            </list>
+          </text>
+          <entry typeCode="DRIV" contextConductionInd="true">
+            <act classCode="ACT" moodCode="EVN">
+              <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.5.1" />
+              <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.5.2" />
+              <id root="F011BBD5-557E-44EA-9E78-463FB59AAEA6" />
+              <code nullFlavor="NA" />
+              <statusCode code="active" />
+              <effectiveTime>
+                <low value="20121216153643.966-0500" />
+              </effectiveTime>
+              <entryRelationship typeCode="SUBJ" contextConductionInd="true">
+                <observation classCode="OBS" moodCode="EVN">
+                  <templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.5" />
+                  <id root="BE31C74D-A7E0-46C8-9175-502E3BD4BD64" />
+                  <code code="418799008" codeSystem="2.16.840.1.113883.6.96" codeSystemName="SNOMED CT" displayName="Symptom" />
+                  <text representation="TXT" mediaType="text/plain" language="en-CA">
+                    <reference value="#idbba9d" />
+                  </text>
+                  <statusCode code="completed" />
+                  <effectiveTime>
+                    <low value="20121216153643.966-0500" />
+                  </effectiveTime>
+                  <value xsi:type="CD" code="B53" codeSystem="2.16.840.1.113883.6.3" codeSystemName="ICD10" codeSystemVersion="2010" displayName="Other parasitologically confirmed malaria" />
+                </observation>
+              </entryRelationship>
+              <reference typeCode="RPLC">
+                <seperatableInd value="false" />
+                <externalAct moodCode="EVN">
+                  <id root="0E8F4E9B-897C-4809-BC76-872F4A05AB33" />
+                </externalAct>
+              </reference>
+            </act>
+          </entry>
+        </section>
+      </component> 
+      			<component>
+				<!--Allergies-->
+				<section>
+					<templateId root="2.16.840.1.113883.3.88.11.83.102" assigningAuthorityName="HITSP/C83"/>
+					<templateId root="1.3.6.1.4.1.19376.1.5.3.1.3.13" assigningAuthorityName="IHE PCC"/>
+					<templateId root="2.16.840.1.113883.10.20.1.2" assigningAuthorityName="HL7 CCD"/>
+					<!--Allergies/Reactions section template-->
+					<code code="48765-2" codeSystem="2.16.840.1.113883.6.1" codeSystemName="LOINC" displayName="Allergies"/>
+					<title>Allergies and Adverse Reactions</title>
+					<text>
+						<table border="1" width="100%">
+							<thead>
+								<tr>
+									<th>Type</th>
+									<th>Substance</th>
+									<th>Reaction</th>
+									<th>Status</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ID="ALGSUMMARY_1">
+									<td ID="ALGTYPE_1">Drug Allergy</td>
+									<td ID="ALGSUB_1">Penicillin</td>
+									<td ID="ALGREACT_1">Hives</td>
+									<td ID="ALGSTATUS_1">Active</td>
+								</tr>
+								<tr ID="ALGSUMMARY_2">
+									<td ID="ALGTYPE_2">Drug Intolerance</td>
+									<td ID="ALGSUB_2">Aspirin</td>
+									<td ID="ALGREACT_2">Wheezing</td>
+									<td ID="ALGSTATUS_2">Active</td>
+								</tr>
+								<tr ID="ALGSUMMARY_3">
+									<td ID="ALGTYPE_3">Drug Intolerance</td>
+									<td ID="ALGSUB_3">Codeine</td>
+									<td ID="ALGREACT_3">Nausea</td>
+									<td ID="ALGSTATUS_3">Active</td>
+								</tr>
+							</tbody>
+						</table>
+					</text>
+					<entry typeCode="DRIV">
+						<act classCode="ACT" moodCode="EVN">
+							<templateId root="2.16.840.1.113883.3.88.11.83.6" assigningAuthorityName="HITSP C83"/>
+							<templateId root="2.16.840.1.113883.10.20.1.27" assigningAuthorityName="CCD"/>
+							<templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.5.1" assigningAuthorityName="IHE PCC"/>
+							<templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.5.3" assigningAuthorityName="IHE PCC"/>
+							<!--Allergy act template -->
+							<id root="36e3e930-7b14-11db-9fe1-0800200c9a66"/>
+							<code nullFlavor="NA"/>
+							<statusCode code="completed"/>
+							<effectiveTime>
+								<low nullFlavor="UNK"/>
+								<high nullFlavor="UNK"/>
+							</effectiveTime>
+							<entryRelationship typeCode="SUBJ" inversionInd="false">
+								<observation classCode="OBS" moodCode="EVN">
+									<templateId root="2.16.840.1.113883.10.20.1.18" assigningAuthorityName="CCD"/>
+									<templateId root="2.16.840.1.113883.10.20.1.28" assigningAuthorityName="CCD"/>
+									<templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.5" assigningAuthorityName="IHE PCC"/>
+									<templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.6" assigningAuthorityName="IHE PCC"/>
+									<templateId root="2.16.840.1.113883.10.20.1.18"/>
+									<!--Allergy observation template. NOTE that the HITSP/C83 requirement for code (i.e. allergy type) differs from the IHE PCC recommendation for code.-->
+									<id root="4adc1020-7b14-11db-9fe1-0800200c9a66"/>
+									<code code="DALG" codeSystem="2.16.840.1.113883.5.4"
+										codeSystemName="ObservationIntoleranceType">
+										<translation code="416098002" codeSystem="2.16.840.1.113883.6.96" displayName="drug allergy" codeSystemName="SNOMED CT"/>
+									</code>
+									<text>
+										<reference value="#ALGSUMMARY_1"/>
+									</text>
+									<statusCode code="completed"/>
+									<effectiveTime>
+										<low nullFlavor="UNK"/>
+									</effectiveTime>
+									<!--Note that IHE/PCC and HITSP/C32 differ in how to represent the drug, substance, or food that one is allergic to. IHE/PCC expects to see that information in <value> and HITSP/C32 expects to see it in <participant>.-->
+									<value xsi:type="CD" code="70618" codeSystem="2.16.840.1.113883.6.88" displayName="Penicillin" codeSystemName="RxNorm">
+										<originalText>
+											<reference value="#ALGSUB_1"/>
+										</originalText>
+									</value>
+									<participant typeCode="CSM">
+										<participantRole classCode="MANU">
+											<addr/>
+											<telecom/>
+											<playingEntity classCode="MMAT">
+												<code code="70618" codeSystem="2.16.840.1.113883.6.88" displayName="Penicillin" codeSystemName="RxNorm">
+													<originalText>
+														<reference value="#ALGSUB_1"/>
+													</originalText>
+												</code>
+												<name>Penicillin</name>
+											</playingEntity>
+										</participantRole>
+									</participant>
+								</observation>
+							</entryRelationship>
+						</act>
+					</entry>
+					<entry typeCode="DRIV">
+						<act classCode="ACT" moodCode="EVN">
+							<templateId root="2.16.840.1.113883.3.88.11.83.6" assigningAuthorityName="HITSP C83"/>
+							<templateId root="2.16.840.1.113883.10.20.1.27" assigningAuthorityName="CCD"/>
+							<templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.5.1" assigningAuthorityName="IHE PCC"/>
+							<templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.5.3" assigningAuthorityName="IHE PCC"/>
+							<!--Allergy act template -->
+							<id root="eb936010-7b17-11db-9fe1-0800200c9a66"/>
+							<code nullFlavor="NA"/>
+							<statusCode code="active"/>
+							<effectiveTime>
+								<low nullFlavor="UNK"/>
+							</effectiveTime>
+							<entryRelationship typeCode="SUBJ" inversionInd="false">
+								<observation classCode="OBS" moodCode="EVN">
+									<templateId root="2.16.840.1.113883.10.20.1.18" assigningAuthorityName="CCD"/>
+									<templateId root="2.16.840.1.113883.10.20.1.28" assigningAuthorityName="CCD"/>
+									<templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.5" assigningAuthorityName="IHE PCC"/>
+									<templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.6" assigningAuthorityName="IHE PCC"/>
+									<!--Allergy observation template. NOTE that the HITSP/C83 requirement for code (i.e. allergy type) differs from the IHE PCC recommendation for code.-->
+									<id root="eb936011-7b17-11db-9fe1-0800200c9a66"/>
+									<code code="DALG" codeSystem="2.16.840.1.113883.5.4"
+										codeSystemName="ObservationIntoleranceType">
+										<translation code="416098002" codeSystem="2.16.840.1.113883.6.96" displayName="drug allergy" codeSystemName="SNOMED CT"/>
+									</code>
+									<text>
+										<reference value="#ALGSUMMARY_2"/>
+									</text>
+									<statusCode code="completed"/>
+									<effectiveTime>
+										<low nullFlavor="UNK"/>
+									</effectiveTime>
+									<!--Note that IHE/PCC and HITSP/C32 differ in how to represent the brug, substance, or food that one is allergic to. IHE/PCC expects to see that information in <value> and HITSP/C32 expects to see it in <participant>.-->
+									<value xsi:type="CD" code="1191" codeSystem="2.16.840.1.113883.6.88" displayName="Aspirin" codeSystemName="RxNorm">
+										<originalText>
+											<reference value="#ALGSUB_2"/>
+										</originalText>
+									</value>
+									<participant typeCode="CSM">
+										<participantRole classCode="MANU">
+											<addr/>
+											<telecom/>
+											<playingEntity classCode="MMAT">
+												<code code="1191" codeSystem="2.16.840.1.113883.6.88" displayName="Aspirin" codeSystemName="RxNorm">
+													<originalText>
+														<reference value="#ALGSUB_2"/>
+													</originalText>
+												</code>
+												<name>Aspirin</name>
+											</playingEntity>
+										</participantRole>
+									</participant>
+								</observation>
+							</entryRelationship>
+						</act>
+					</entry>
+					<entry typeCode="DRIV">
+						<act classCode="ACT" moodCode="EVN">
+							<templateId root="2.16.840.1.113883.3.88.11.83.6" assigningAuthorityName="HITSP C83"/>
+							<templateId root="2.16.840.1.113883.10.20.1.27" assigningAuthorityName="CCD"/>
+							<templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.5.1" assigningAuthorityName="IHE PCC"/>
+							<templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.5.3" assigningAuthorityName="IHE PCC"/>
+							<!--Allergy act template -->
+							<id root="c3df3b61-7b18-11db-9fe1-0800200c9a66"/>
+							<code nullFlavor="NA"/>
+							<statusCode code="active"/>
+							<effectiveTime>
+								<low nullFlavor="UNK"/>
+							</effectiveTime>
+							<entryRelationship typeCode="SUBJ" inversionInd="false">
+								<observation classCode="OBS" moodCode="EVN">
+									<templateId root="2.16.840.1.113883.10.20.1.18"/>
+									<templateId root="2.16.840.1.113883.10.20.1.28" assigningAuthorityName="CCD"/>
+									<templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.5" assigningAuthorityName="IHE PCC"/>
+									<templateId root="1.3.6.1.4.1.19376.1.5.3.1.4.6" assigningAuthorityName="IHE PCC"/>
+									<!--Allergy observation template. NOTE that the HITSP/C83 requirement for code (i.e. allergy or adverse reaction type) differs from the IHE PCC recommendation for code.-->
+									<id root="c3df3b60-7b18-11db-9fe1-0800200c9a66"/>
+									<code code="DALG" codeSystem="2.16.840.1.113883.5.4"
+										codeSystemName="ObservationIntoleranceType">
+										<translation code="416098002" codeSystem="2.16.840.1.113883.6.96" displayName="drug allergy" codeSystemName="SNOMED CT"/>
+									</code>
+									<text>
+										<reference value="#ALGSUMMARY_3"/>
+									</text>
+									<statusCode code="completed"/>
+									<effectiveTime>
+										<low value="200512"/>
+										<high value="200601"/>
+									</effectiveTime>
+									<!--Note that IHE/PCC and HITSP/C32 differ in how to represent the drug, substance, or food that one is allergic to. IHE/PCC expects to see that information in <value> and HITSP/C32 expects to see it in <participant>.-->
+									<value xsi:type="CD" code="2670" codeSystem="2.16.840.1.113883.6.88" displayName="Codeine" codeSystemName="RxNorm">
+										<originalText>
+											<reference value="#ALGSUB_3"/>
+										</originalText>
+									</value>
+									<participant typeCode="CSM">
+										<participantRole classCode="MANU">
+											<addr/>
+											<telecom/>
+											<playingEntity classCode="MMAT">
+												<code code="2670" codeSystem="2.16.840.1.113883.6.88" displayName="Codeine" codeSystemName="RxNorm">
+													<originalText>
+														<reference value="#ALGSUB_3"/>
+													</originalText>
+												</code>
+												<name>Codeine</name>
+											</playingEntity>
+										</participantRole>
+									</participant>
+								</observation>
+							</entryRelationship>
+						</act>
+					</entry>
+				</section>
+			</component>
+           
     </structuredBody>
   </component>
 </ClinicalDocument>

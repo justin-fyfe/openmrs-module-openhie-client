@@ -5,7 +5,7 @@
 	<!-- Base Module Properties -->
 	<id>${project.parent.artifactId}</id>
 	<name>${project.parent.name}</name>
-	<version>${project.parent.version}</version>
+	<version>${project.parent.version}.3</version>
 	<package>${project.parent.groupId}.${project.parent.artifactId}</package>
 	<author>Fyfe Software Inc.</author>
 	<description>

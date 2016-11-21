@@ -42,14 +42,20 @@ public class AntepartumFlowsheetPanelSectionBuilder extends SectionBuilderImpl {
 	 */
 	public Section generate(Obs prepregnancyWeightObs, Obs gestgationalAgeObs, Obs fundalHeightObs, Obs presentationObs, Obs systolicBpObs, Obs diastolicBpObs, Obs weightObs)
 	{
-		if(!(prepregnancyWeightObs.getConcept() instanceof ConceptNumeric))
+		if(prepregnancyWeightObs != null && !(prepregnancyWeightObs.getConcept() instanceof ConceptNumeric))
 			throw new IllegalArgumentException("prepregnancyWeightObs must be a numeric concept");
 		
 		SimpleObservationEntryBuilder obsBuilder = new SimpleObservationEntryBuilder();
 		AntepartumFlowsheetBatteryEntryBuilder batteryBuilder = new AntepartumFlowsheetBatteryEntryBuilder();
-		Entry prepregnancyWeight = new Entry(x_ActRelationshipEntry.HasComponent, BL.TRUE, obsBuilder.generate(new CD<String>("8348-5", CdaHandlerConstants.CODE_SYSTEM_LOINC, CdaHandlerConstants.CODE_SYSTEM_NAME_LOINC, null, "Prepregnancy Weight", null), prepregnancyWeightObs)),
-			flowsheetBattery = new Entry(x_ActRelationshipEntry.HasComponent, BL.TRUE, batteryBuilder.generate(gestgationalAgeObs, fundalHeightObs, presentationObs, systolicBpObs, diastolicBpObs, weightObs));
-		return this.generate(prepregnancyWeight, flowsheetBattery);
+		Entry flowsheetBattery = new Entry(x_ActRelationshipEntry.HasComponent, BL.TRUE, batteryBuilder.generate(gestgationalAgeObs, fundalHeightObs, presentationObs, systolicBpObs, diastolicBpObs, weightObs)),
+				prepregnancyWeight = null;
+		if(prepregnancyWeightObs != null)
+		{
+			prepregnancyWeight = new Entry(x_ActRelationshipEntry.HasComponent, BL.TRUE, obsBuilder.generate(new CD<String>("8348-5", CdaHandlerConstants.CODE_SYSTEM_LOINC, CdaHandlerConstants.CODE_SYSTEM_NAME_LOINC, null, "Prepregnancy Weight", null), prepregnancyWeightObs));
+			return this.generate(prepregnancyWeight, flowsheetBattery);
+		}
+		else
+			return this.generate(flowsheetBattery);
 		
 	}
 }

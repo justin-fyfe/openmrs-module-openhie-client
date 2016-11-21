@@ -189,7 +189,6 @@ public final class CdaDataUtil {
 		
 		// Get the ID
 		retVal.setId(SET.createSET(
-			this.parseIIFromString(pvdr.getIdentifier()),
 			new II(this.m_cdaConfiguration.getProviderRoot(), pvdr.getId().toString())
 		));
 
@@ -319,7 +318,6 @@ public final class CdaDataUtil {
 		
 		// Get the ID
 		retVal.setId(SET.createSET(
-			this.parseIIFromString(pvdr.getIdentifier()),
 			new II(this.m_cdaConfiguration.getProviderRoot(), pvdr.getId().toString()),
 			new II(this.m_cdaConfiguration.getUserRoot(), Context.getUserService().getUsersByPerson(pvdr.getPerson(), false).get(0).getId().toString())
 		));
@@ -345,6 +343,7 @@ public final class CdaDataUtil {
 		return retVal;
     }
 
+	
 	/**
 	 * Create organization from location
 	 */

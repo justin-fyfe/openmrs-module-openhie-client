@@ -91,12 +91,17 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 		{
 			PatientIdentifier existingPid = patient.getPatientIdentifier(pid.getIdentifierType());
 			if(existingPid != null && !existingPid.getIdentifier().equals(pid.getIdentifier()))
+			{
 					existingPid.setIdentifier(pid.getIdentifier());
+					Context.getPatientService().savePatientIdentifier(existingPid);	
+			}
 			else if(existingPid == null)
-				patient.addIdentifier(pid);
+			{
+				pid.setPatient(patient);
+				Context.getPatientService().savePatientIdentifier(pid);
+			}
 			else
 				return;
-			Context.getPatientService().savePatient(patient);	
 		}
 		else
 			throw new HealthInformationExchangeException("Patient has been removed from the HIE");
@@ -284,6 +289,7 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 			existingPatientRecord.setBirthdate(patient.getBirthdate());
 			existingPatientRecord.setBirthdateEstimated(patient.getBirthdateEstimated());
 			existingPatientRecord.setGender(patient.getGender());
+			
 			patient = existingPatientRecord;
 		}
 		else
@@ -299,10 +305,12 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 			
 			if(!isPreferred)
 				patient.getIdentifiers().iterator().next().setPreferred(true);
+
 		}
+		
 		Patient importedPatient = Context.getPatientService().savePatient(patient);
 		// Now notify
-		this.exportPatient(importedPatient);
+		this.exportPatient(patient);
 		return importedPatient;
 	}
 	
@@ -556,7 +564,14 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 		// Does this patient have an identifier from our assigning authority?
 		for(PatientIdentifier pid : remotePatient.getIdentifiers())
 			if(pid.getIdentifierType().getName().equals(this.m_cdaConfiguration.getPatientRoot()))
-				candidate = Context.getPatientService().getPatient(Integer.parseInt(pid.getIdentifier()));
+				try
+				{
+					candidate = Context.getPatientService().getPatient(Integer.parseInt(pid.getIdentifier()));
+				}
+				catch(Exception e)
+				{
+					
+				}
 		
 		// This patient may be an existing patient, so we just don't want to add it!
 		if(candidate == null)

@@ -40,7 +40,7 @@ public class VitalSignsBatteryEntryBuilder extends EntryBuilderImpl {
 	public ClinicalStatement generate(Obs systolicBpObs, Obs diastolicBpObs, Obs weightObs, Obs heightObs, Obs temperatureObs) {
 		Encounter batteryEnc = systolicBpObs.getEncounter();
 		
-		if(systolicBpObs != null && !(systolicBpObs.getConcept() instanceof ConceptNumeric))
+		/*if(systolicBpObs != null && !(systolicBpObs.getConcept() instanceof ConceptNumeric))
 			throw new IllegalArgumentException("systolicBpObs must be a numeric concept");
 		else if(diastolicBpObs != null && !(diastolicBpObs.getConcept() instanceof ConceptNumeric))
 			throw new IllegalArgumentException("diastolicBpObs must be a numeric concept");
@@ -50,7 +50,7 @@ public class VitalSignsBatteryEntryBuilder extends EntryBuilderImpl {
 			throw new IllegalArgumentException("heightObs must be a numeric concept");
 		else if(temperatureObs != null && !(temperatureObs.getConcept() instanceof ConceptNumeric))
 			throw new IllegalArgumentException("temperatureObs must be a numeric concept");
-		else if(heightObs != null && batteryEnc.getId() != heightObs.getEncounter().getId() ||
+		else*/ if(heightObs != null && batteryEnc.getId() != heightObs.getEncounter().getId() ||
 				systolicBpObs != null && batteryEnc.getId() != systolicBpObs.getEncounter().getId() ||
 				diastolicBpObs != null && batteryEnc.getId() != diastolicBpObs.getEncounter().getId() ||
 				temperatureObs != null && batteryEnc.getId() != temperatureObs.getEncounter().getId() ||

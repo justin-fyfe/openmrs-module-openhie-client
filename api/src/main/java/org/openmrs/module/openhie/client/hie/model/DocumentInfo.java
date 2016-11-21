@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
+import org.openmrs.Provider;
 import org.openmrs.module.shr.contenthandler.api.Content;
 
 /**
@@ -25,7 +26,7 @@ public class DocumentInfo {
 	// related encounters
 	private Encounter relatedEncounter;
 	// authors
-	private List<String> authorDisplayNames;
+	private List<Provider> authorXon;
 	// Unique id
 	private String uniqueId;
 	// Repository id
@@ -36,6 +37,8 @@ public class DocumentInfo {
 	private String classCode;
 	// Creation time
 	private Date creationTime;
+	// Type code
+	private String typeCode;
 	
     
 	/**
@@ -147,14 +150,15 @@ public class DocumentInfo {
 	/**
 	 * @return the authorDisplayNames
 	 */
-	public List<String> getAuthorDisplayNames() {
-		return authorDisplayNames;
+	public List<Provider> getAuthors() {
+		return authorXon;
+		
 	}
 	/**
-	 * @param authorDisplayNames the authorDisplayNames to set
+	 * @param authors the authorDisplayNames to set
 	 */
-	public void setAuthorDisplayNames(List<String> authorDisplayNames) {
-		this.authorDisplayNames = authorDisplayNames;
+	public void setAuthors(List<Provider> authors) {
+		this.authorXon = authors;
 	}
 
 
@@ -192,5 +196,15 @@ public class DocumentInfo {
     public void setClassCode(String classCode) {
     	this.classCode = classCode;
     }
+
+
+	public String getTypeCode() {
+		return typeCode;
+	}
+
+
+	public void setTypeCode(String typeCode) {
+		this.typeCode = typeCode;
+	}
 	
 }

@@ -17,8 +17,8 @@
 					<td style="border-bottom:solid 1px #ddd">${doc.title }</td>
 					<td style="border-bottom:solid 1px #ddd">${doc.creationTime }</td>
 					<td style="border-bottom:solid 1px #ddd">
-						<c:forEach var="aut" items="${doc.authorDisplayNames }">
-							${aut} <br/>
+						<c:forEach var="aut" items="${doc.authors}">
+							${aut.name} <br/>
 						</c:forEach>
 					</td>
 					<td style="border-bottom:solid 1px #ddd">${doc.mimeType }</td>
@@ -34,4 +34,9 @@
 			<spring:message code="openhie-client.noDocuments"/>
 		</c:otherwise>
 	</c:choose>
+
+	<center>
+		<c:url var="exportDocumentUrl" value="/module/openhie-client/hieExportDocument.form"/>
+		<a href="${exportDocumentUrl}?pid=${model.patientId}&encid=&template=" target="_blank">Export Patient Data</a>
+	</center>
 </openmrs:hasPrivilege>

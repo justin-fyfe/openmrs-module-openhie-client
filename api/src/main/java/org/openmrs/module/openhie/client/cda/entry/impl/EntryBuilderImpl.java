@@ -123,6 +123,46 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
     }
 	
 	/**
+	 * Correct a code to a more preferred code system
+	 */
+	protected void correctCode(CE<?> code, String... codeSystems) {
+
+		if(code.isNull())
+			return;
+
+		// Already preferred
+		for(String cs : codeSystems)
+			if(code.getCodeSystem().equals(cs))
+				return; 
+		
+		// Get translation
+		code.getTranslation().add(new CD(code.getCode(), code.getCodeSystem(), code.getCodeSystemName(), code.getCodeSystemVersion(), code.getDisplayName(), null));
+		// Move the first translation to the root code
+		for(String cs : codeSystems)
+		{
+			for(CD<?> tx : code.getTranslation())
+				if(tx.getCodeSystem().equals(cs))
+				{
+					code.setCode(tx.getCode());
+					code.setCodeSystem(tx.getCodeSystem());
+					code.setDisplayName(tx.getDisplayName());
+					code.setCodeSystemName(tx.getCodeSystemName());
+					code.setCodeSystemVersion(tx.getCodeSystemVersion());
+					code.getTranslation().remove(tx);
+					return;
+				}
+		}
+		
+		// Not found :| ... Null Flavor it with OTH
+		code.setNullFlavor(NullFlavor.Other);
+		code.setCodeSystemName(null);
+		code.setDisplayName(null);
+		code.setCodeSystemVersion(null);
+		code.setCode(null);
+		code.setCodeSystem(codeSystems[0]);
+		
+    }
+	/**
 	 * Create an author node that points to correct information
 	 */
 	protected Author createAuthorPointer(BaseOpenmrsData sourceData) {
@@ -142,7 +182,12 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 			if(providers.size() > 0)
 			{
 				Provider pvdr = providers.iterator().next();
+				log.debug(String.format("Author %s", pvdr));
 				retVal.setAssignedAuthor(this.m_cdaDataUtil.createAuthorPerson(pvdr));
+			}
+			else
+			{
+				log.error("No provider is found for this observation");
 			}
 			//retVal.setAssignedAuthor(new AssignedAuthor(SET.createSET(new II(this.m_cdaConfiguration.getUserRoot(), sourceData.getCreator().getId().toString()))));
 		}
@@ -430,6 +475,10 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 	    			eft.getLow().setDateValuePrecision(obs.getObsDatePrecision());
 	    	}
 	    }
+	    else if(activeListItem.getStartDate() != null)
+	    {
+	    	eft.setLow(this.m_cdaDataUtil.createTS(activeListItem.getStartDate()));
+	    }
 	    if(activeListItem.getStopObs() != null)
 	    {
 	    	eft.setHigh(this.m_cdaDataUtil.createTS(activeListItem.getEndDate()));
@@ -481,7 +530,8 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
     			effectiveTime = null;
 
     	retVal.setMoodCode(this.getMoodCode(sourceObs, x_DocumentSubstanceMood.class));
-    	retVal.setStatusCode(this.getStatusCode(sourceObs));
+    	//retVal.setStatusCode(this.getStatusCode(sourceObs));
+		retVal.setStatusCode(ActStatus.Completed);
     	
 	    // Effective time and extended observation properties
 	    if(extendedObs != null)

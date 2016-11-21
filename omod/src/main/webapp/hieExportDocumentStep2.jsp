@@ -1,4 +1,5 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
+<%@ include file="/WEB-INF/template/header.jsp"%>
 
 <spring:htmlEscape defaultHtmlEscape="true" />
 <openmrs:require privilege="View Patients" otherwise="/login.htm" redirect="/index.htm" />
@@ -6,8 +7,8 @@
 <openmrs:htmlInclude file="/scripts/jquery/dataTables/js/jquery.dataTables.min.js"/>
 <openmrs:htmlInclude file="/scripts/jquery-ui/js/openmrsSearch.js" />
 
-<h2>Import HIE Document</h2>
-<p>Review the following document before importing</p>
+<h2>Export HIE Document (Step 2 of 2)</h2>
+<p>The following document will be shared with the configured Health Information Exchange (HIE), review the contents and press "share" to submit the document</p>
 
 <form id="importForm" modelAttribute="importPatient" method="post"
 			enctype="multipart/form-data">
@@ -17,16 +18,11 @@
 			${document.html}
 		</div>
 		<div>
-			<input type="submit" onClick="return confirm('This action will import all discete data from this document into your local OpenMRS instance. Do you want to continue?');" value="Import Document">
+			<input type="submit" onClick="return confirm('This action will export protected health information from your copy of OpenMRS and share it with others. Are you sure you want to do this?');" value="Share Document">
 			<input type="button" onClick="window.close();" value="Cancel"/>
 		</div>
 	</c:when>
-	<c:otherwise>
-		<script type="text/javascript">
-			window.close();
-		</script>
-	</c:otherwise>
 </c:choose>
 </form>
 
-
+<%@ include file="/WEB-INF/template/footer.jsp"%>

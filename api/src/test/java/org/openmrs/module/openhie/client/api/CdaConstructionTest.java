@@ -25,9 +25,15 @@ import org.marc.everest.rmim.uv.cdar2.rim.InfrastructureRoot;
 import org.openmrs.GlobalProperty;
 import org.openmrs.Obs;
 import org.openmrs.Visit;
+import org.openmrs.activelist.ActiveListType;
+import org.openmrs.activelist.Allergy;
+import org.openmrs.activelist.Problem;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.openhie.client.api.util.CdaLoggingUtils;
 import org.openmrs.module.openhie.client.cda.document.impl.ApsDocumentBuilder;
+import org.openmrs.module.openhie.client.cda.document.impl.DocumentBuilderImpl;
+import org.openmrs.module.openhie.client.cda.section.impl.ActiveProblemsSectionBuilder;
+import org.openmrs.module.openhie.client.cda.section.impl.AllergiesIntolerancesSectionBuilder;
 import org.openmrs.module.openhie.client.cda.section.impl.AntepartumFlowsheetPanelSectionBuilder;
 import org.openmrs.module.openhie.client.cda.section.impl.EstimatedDeliveryDateSectionBuilder;
 import org.openmrs.module.openhie.client.cda.section.impl.MedicationsSectionBuilder;
@@ -71,6 +77,7 @@ public class CdaConstructionTest extends BaseModuleContextSensitiveTest {
 		Context.getAdministrationService().setGlobalProperty("order.nextOrderNumberSeed", "1");
 		Context.getAdministrationService().setGlobalProperty(OpenmrsConstants.GLOBAL_PROPERTY_FALSE_CONCEPT, "1066");
         Context.getAdministrationService().setGlobalProperty("shr-cdahandler.cacheMappedConcepts", "false");
+        Context.getAdministrationService().setGlobalProperty(CdaHandlerConfiguration.PROP_VALIDATE_STRUCTURE, "false");
 		Context.getAdministrationService().saveGlobalProperty(saveDir);
 		//GlobalProperty disableValidation = new GlobalProperty(OpenmrsConstants.GP_DISABLE_VALIDATION, "true");
 		//Context.getAdministrationService().saveGlobalProperty(disableValidation);
@@ -114,6 +121,49 @@ public class CdaConstructionTest extends BaseModuleContextSensitiveTest {
 	        return null;
         }
 
+	}
+	
+	/**
+	 * Test generation of simple generic document from OSCAR
+	 */
+	@Test
+	public void testGenerateSimpleGenericDocumentOscar()
+	{
+		Visit v1 = this.doParseCda("/cdaFromOscarEmr.xml");
+		assertEquals(Visit.class, v1.getClass());
+		
+		List<Obs> medicationObs = new ArrayList<Obs>();
+		
+		for(Obs obs : Context.getObsService().getObservationsByPerson(v1.getPatient()))
+		{
+			CD<String> loincCode = CdaMetadataUtil.getInstance().getStandardizedCode(obs.getConcept(), CdaHandlerConstants.CODE_SYSTEM_LOINC, CD.class);
+			// EDD Stuff
+			if(obs.getConcept().getId().equals(CdaHandlerConstants.CONCEPT_ID_MEDICATION_HISTORY))
+				medicationObs.add(obs);
+			else if(loincCode == null || loincCode.getCode() == null)
+				continue;
+			
+		}
+
+		MedicationsSectionBuilder medSectionBuilder = new MedicationsSectionBuilder();
+		ActiveProblemsSectionBuilder probBuilder = new ActiveProblemsSectionBuilder();
+		AllergiesIntolerancesSectionBuilder allergyBuilder = new AllergiesIntolerancesSectionBuilder();
+		
+		Section medicationsSection = medSectionBuilder.generate(medicationObs.toArray(new Obs[]{})),
+				probSection = probBuilder.generate(Context.getActiveListService().getActiveListItems(v1.getPatient(), Problem.ACTIVE_LIST_TYPE).toArray(new Problem[] {})),
+				allergySection = allergyBuilder.generate(Context.getActiveListService().getActiveListItems(v1.getPatient(), Allergy.ACTIVE_LIST_TYPE).toArray(new Allergy[] {}));
+
+		DocumentBuilderImpl apsBuilder = new DocumentBuilderImpl();
+		apsBuilder.setRecordTarget(v1.getPatient());
+		apsBuilder.setEncounterEvent(v1.getEncounters().iterator().next());
+		ClinicalDocument doc = apsBuilder.generate(medicationsSection, probSection, allergySection);
+		
+		
+		log.error(CdaLoggingUtils.getCdaAsString(doc));
+		
+		assertEquals(2, doc.getTemplateId().size());
+		
+		
 	}
 	
 	/**
@@ -171,15 +221,21 @@ public class CdaConstructionTest extends BaseModuleContextSensitiveTest {
 		AntepartumFlowsheetPanelSectionBuilder flowsheetSectionBuilder = new AntepartumFlowsheetPanelSectionBuilder();
 		VitalSignsSectionBuilder vitalSignsSectionBuilder = new VitalSignsSectionBuilder();
 		MedicationsSectionBuilder medSectionBuilder = new MedicationsSectionBuilder();
+		ActiveProblemsSectionBuilder probBuilder = new ActiveProblemsSectionBuilder();
+		AllergiesIntolerancesSectionBuilder allergyBuilder = new AllergiesIntolerancesSectionBuilder();
 		
 		Section eddSection = eddSectionBuilder.generate(estimatedDeliveryDateObs, lastMenstrualPeriodObs),
 				flowsheetSection = flowsheetSectionBuilder.generate(prepregnancyWeightObs, gestgationalAgeObs, fundalHeightObs, presentationObs, systolicBpObs, diastolicBpObs, weightObs),
 				vitalSignsSection = vitalSignsSectionBuilder.generate(systolicBpObs, diastolicBpObs, weightObs, heightObs, temperatureObs),
-				medicationsSection = medSectionBuilder.generate(medicationObs.toArray(new Obs[]{})); 
+				medicationsSection = medSectionBuilder.generate(medicationObs.toArray(new Obs[]{})),
+				probSection = probBuilder.generate(Context.getActiveListService().getActiveListItems(v1.getPatient(), Problem.ACTIVE_LIST_TYPE).toArray(new Problem[] {})),
+				allergySection = allergyBuilder.generate(Context.getActiveListService().getActiveListItems(v1.getPatient(), Allergy.ACTIVE_LIST_TYPE).toArray(new Allergy[] {}));
+
 		ApsDocumentBuilder apsBuilder = new ApsDocumentBuilder();
 		apsBuilder.setRecordTarget(v1.getPatient());
 		apsBuilder.setEncounterEvent(v1.getEncounters().iterator().next());
-		ClinicalDocument doc = apsBuilder.generate(eddSection, flowsheetSection, vitalSignsSection, medicationsSection);
+		ClinicalDocument doc = apsBuilder.generate(eddSection, flowsheetSection, vitalSignsSection, medicationsSection, probSection, allergySection);
+		
 		
 		log.error(CdaLoggingUtils.getCdaAsString(doc));
 		

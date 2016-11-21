@@ -33,7 +33,8 @@ public class AntepartumFlowsheetBatteryEntryBuilder extends EntryBuilderImpl {
 		Encounter batteryEnc = gestgationalAgeObs.getEncounter();
 		
 		// Validate parameters
-		if(gestgationalAgeObs == null || !(gestgationalAgeObs.getConcept() instanceof ConceptNumeric))
+		
+		/*if(gestgationalAgeObs == null || !(gestgationalAgeObs.getConcept() instanceof ConceptNumeric))
 			throw new IllegalArgumentException("gestgationalAgeObs must be a numeric concept");
 		else if(fundalHeightObs != null && !(fundalHeightObs.getConcept() instanceof ConceptNumeric))
 			throw new IllegalArgumentException("fundalHeightObs must be a numeric concept");
@@ -45,7 +46,8 @@ public class AntepartumFlowsheetBatteryEntryBuilder extends EntryBuilderImpl {
 			throw new IllegalArgumentException("diastolicBpObs must be a numeric concept");
 		else if(weightObs != null && !(weightObs.getConcept() instanceof ConceptNumeric))
 			throw new IllegalArgumentException("weightObs must be a numeric concept");
-		else if(fundalHeightObs != null && batteryEnc.getId() != fundalHeightObs.getEncounter().getId() ||
+		*/
+		if(fundalHeightObs != null && batteryEnc.getId() != fundalHeightObs.getEncounter().getId() ||
 				presentationObs != null && batteryEnc.getId() != presentationObs.getEncounter().getId() ||
 				systolicBpObs != null && batteryEnc.getId() != systolicBpObs.getEncounter().getId() ||
 				diastolicBpObs != null && batteryEnc.getId() != diastolicBpObs.getEncounter().getId() ||

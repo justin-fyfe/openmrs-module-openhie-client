@@ -15,6 +15,24 @@ import org.openmrs.module.shr.cdahandler.CdaHandlerConstants;
 public class ApsDocumentBuilder extends DocumentBuilderImpl {
 
 	/**
+	 * Get the document type code
+	 * @see org.openmrs.module.shr.odd.generator.DocumentGenerator#getDocumentTypeCode()
+	 */
+	@Override
+    public String getTypeCode() {
+		return "57055-6";
+    }
+
+	/**
+	 * Get the document format code
+	 * @see org.openmrs.module.shr.odd.generator.DocumentGenerator#getFormatCode()
+	 */
+    @Override
+	public String getFormatCode() {
+		return "1.3.6.1.4.1.19376.1.5.3.1.1.11.2";
+	}
+	
+	/**
 	 * Generate the APS summary
 	 */
 	@Override
