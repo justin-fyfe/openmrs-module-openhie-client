@@ -3,23 +3,20 @@ package org.openmrs.module.openhie.client.cda.document.impl;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.marc.everest.datatypes.BL;
 import org.marc.everest.datatypes.II;
 import org.marc.everest.datatypes.NullFlavor;
 import org.marc.everest.datatypes.TS;
-import org.marc.everest.datatypes.generic.LIST;
 import org.marc.everest.datatypes.generic.CE;
 import org.marc.everest.datatypes.generic.CS;
+import org.marc.everest.datatypes.generic.LIST;
 import org.marc.everest.datatypes.generic.SET;
-import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.AssignedAuthor;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.AssignedCustodian;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Author;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.ClinicalDocument;
@@ -38,16 +35,15 @@ import org.marc.everest.rmim.uv.cdar2.vocabulary.ParticipationFunction;
 import org.marc.everest.rmim.uv.cdar2.vocabulary.x_BasicConfidentialityKind;
 import org.marc.everest.rmim.uv.cdar2.vocabulary.x_ServiceEventPerformer;
 import org.openmrs.Encounter;
-import org.openmrs.EncounterRole;
+//import org.openmrs.EncounterRole;
 import org.openmrs.Patient;
 import org.openmrs.Person;
-import org.openmrs.Provider;
 import org.openmrs.Relationship;
-import org.openmrs.Visit;
+//import org.openmrs.Visit;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.openhie.client.CdaHandlerConstants;
 import org.openmrs.module.openhie.client.cda.document.DocumentBuilder;
 import org.openmrs.module.openhie.client.util.CdaDataUtil;
-import org.openmrs.module.shr.cdahandler.CdaHandlerConstants;
 
 /**
  * A generic clinical document builder which does not assign any template
@@ -148,8 +144,10 @@ public class DocumentBuilderImpl implements DocumentBuilder {
 					lastRecord = new Date(0);
 			
 			// Assign data form the encounter
-			if(this.m_encounter != null)
-			{
+			/*
+			 Removed for back-port to 1.8.2
+			 if(this.m_encounter != null)
+			 {
 				Visit visit = this.m_encounter.getVisit();
 				if(visit != null)
 				{
@@ -187,22 +185,23 @@ public class DocumentBuilderImpl implements DocumentBuilder {
 		
 			}
 			else
-			{
+			{*/
 				earliestRecord = this.m_recordTarget.getDateCreated();
 				lastRecord = this.m_recordTarget.getDateChanged();
 				
 				Person person= Context.getAuthenticatedUser().getPerson();
-				Collection<Provider> provider = Context.getProviderService().getProvidersByPerson(person);
-				if(provider.size() > 0)
+				//Removed for back-port to 1.8.2
+				//Collection<Provider> provider = Context.getProviderService().getProvidersByPerson(person);
+				//if(provider.size() > 0)
 				{
 					Author aut = new Author(ContextControl.OverridingPropagating);
 					aut.setTime(new TS());
 					aut.getTime().setNullFlavor(NullFlavor.NoInformation);
-					aut.setAssignedAuthor(this.m_cdaDataUtil.createAuthorPerson(provider.iterator().next()));
+					aut.setAssignedAuthor(this.m_cdaDataUtil.createAuthorPerson(person));
 					retVal.getAuthor().add(aut);
 				}
 				
-			}
+			//}
 			
 			// Set the effective time of records
 			Calendar earliestCal = Calendar.getInstance(), 
@@ -251,7 +250,7 @@ public class DocumentBuilderImpl implements DocumentBuilder {
 		{
 			
 			log.error(e);
-			log.error(ExceptionUtils.getStackTrace(e));
+			//log.error(ExceptionUtils.getStackTrace(e));
 			throw new RuntimeException(e);
 		}
 	}

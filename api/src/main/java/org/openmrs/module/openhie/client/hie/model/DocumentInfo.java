@@ -5,8 +5,7 @@ import java.util.List;
 
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
-import org.openmrs.Provider;
-import org.openmrs.module.shr.contenthandler.api.Content;
+import org.openmrs.Person;
 
 /**
  * Represents basic information about a document related to a patient
@@ -26,7 +25,7 @@ public class DocumentInfo {
 	// related encounters
 	private Encounter relatedEncounter;
 	// authors
-	private List<Provider> authorXon;
+	private List<Person> authorXon;
 	// Unique id
 	private String uniqueId;
 	// Repository id
@@ -150,14 +149,14 @@ public class DocumentInfo {
 	/**
 	 * @return the authorDisplayNames
 	 */
-	public List<Provider> getAuthors() {
+	public List<Person> getAuthors() {
 		return authorXon;
 		
 	}
 	/**
 	 * @param authors the authorDisplayNames to set
 	 */
-	public void setAuthors(List<Provider> authors) {
+	public void setAuthors(List<Person> authors) {
 		this.authorXon = authors;
 	}
 

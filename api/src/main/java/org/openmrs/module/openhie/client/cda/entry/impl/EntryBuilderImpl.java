@@ -69,17 +69,13 @@ import org.openmrs.BaseOpenmrsData;
 import org.openmrs.Concept;
 import org.openmrs.Drug;
 import org.openmrs.Obs;
-import org.openmrs.Provider;
 import org.openmrs.activelist.ActiveListItem;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.openhie.client.CdaHandlerConstants;
 import org.openmrs.module.openhie.client.cda.entry.EntryBuilder;
+import org.openmrs.module.openhie.client.configuration.CdaHandlerConfiguration;
 import org.openmrs.module.openhie.client.util.CdaDataUtil;
 import org.openmrs.module.openhie.client.util.CdaMetadataUtil;
-import org.openmrs.module.shr.cdahandler.CdaHandlerConstants;
-import org.openmrs.module.shr.cdahandler.api.CdaImportService;
-import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
-import org.openmrs.module.shr.cdahandler.obs.ExtendedObs;
-import org.openmrs.module.shr.cdahandler.processor.entry.impl.ihe.pcc.ConcernEntryProcessor;
 import org.openmrs.util.OpenmrsConstants;
 
 /**
@@ -170,24 +166,14 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 		if(sourceData.getChangedBy() != null)
 		{
 			retVal.setTime(this.m_cdaDataUtil.createTS(sourceData.getDateChanged()));
-			Collection<Provider> providers = Context.getProviderService().getProvidersByPerson(sourceData.getChangedBy().getPerson());
-			Provider pvdr = providers.iterator().next();
-			retVal.setAssignedAuthor(this.m_cdaDataUtil.createAuthorPerson(pvdr));
+			retVal.setAssignedAuthor(this.m_cdaDataUtil.createAuthorPerson(sourceData.getChangedBy().getPerson()));
 //			retVal.setAssignedAuthor(new AssignedAuthor(SET.createSET(new II(this.m_cdaConfiguration.getUserRoot(), sourceData.getChangedBy().getId().toString()))));
 		}
 		else
 		{
 			retVal.setTime(this.m_cdaDataUtil.createTS(sourceData.getDateCreated()));
-			Collection<Provider> providers = Context.getProviderService().getProvidersByPerson(sourceData.getCreator().getPerson());
-			if(providers.size() > 0)
 			{
-				Provider pvdr = providers.iterator().next();
-				log.debug(String.format("Author %s", pvdr));
-				retVal.setAssignedAuthor(this.m_cdaDataUtil.createAuthorPerson(pvdr));
-			}
-			else
-			{
-				log.error("No provider is found for this observation");
+				retVal.setAssignedAuthor(this.m_cdaDataUtil.createAuthorPerson(sourceData.getCreator().getPerson()));
 			}
 			//retVal.setAssignedAuthor(new AssignedAuthor(SET.createSET(new II(this.m_cdaConfiguration.getUserRoot(), sourceData.getCreator().getId().toString()))));
 		}
@@ -221,34 +207,10 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 
 
 	/**
-	 * Set extended observation properties
-	 */
-	protected void setExtendedObservationProperties(Observation cdaObservation, ExtendedObs extendedObs) {
-
-    	if(extendedObs.getObsInterpretation() != null)
-    		cdaObservation.setInterpretationCode(SET.createSET((CE<ObservationInterpretation>)this.m_cdaMetadataUtil.getStandardizedCode(extendedObs.getObsInterpretation(), ObservationInterpretation.Abnormal.getCodeSystem(), CE.class)));
-    	if(extendedObs.getObsRepeatNumber() != null)
-    		cdaObservation.setRepeatNumber(new INT(extendedObs.getObsRepeatNumber()));
-    	
-    }
-
-	/**
 	 * Get the mood code
 	 */
 	protected <T extends IEnumeratedVocabulary> CS<T> getMoodCode(Obs obs, Class<T> vocabulary) {
-		 if(obs instanceof ExtendedObs)
-		    {
-		    	ExtendedObs extendedObs = (ExtendedObs)obs;
-		    	CS<String> status = this.m_cdaMetadataUtil.getStandardizedCode(extendedObs.getObsMood(), x_DocumentProcedureMood.Eventoccurrence.getCodeSystem(), CS.class);
-		    	if(status.isNull())
-		    		return new CS<T>(FormatterUtil.fromWireFormat("EVN", vocabulary));
-		    	else
-		    		return new CS<T>(FormatterUtil.fromWireFormat(status.getCode(), vocabulary));
-		    }
-			 else
-			 {
 				 return new CS<T>(FormatterUtil.fromWireFormat("EVN", vocabulary));
-			 }
     }
 
 	/**
@@ -257,36 +219,7 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 	protected IVL<TS> getEffectiveTime(BaseOpenmrsData data) {
 		IVL<TS> retVal = new IVL<TS>();
 		
-		if(data instanceof ExtendedObs)
-		{
-			ExtendedObs extendedObs = (ExtendedObs)data;
-	    	// status?
-	    	if(extendedObs.getObsDatetime() != null &&
-	    			extendedObs.getObsStartDate() == null &&
-	    			extendedObs.getObsEndDate() == null)
-	    		retVal.setValue(this.m_cdaDataUtil.createTS(extendedObs.getObsDatetime()));
-	    	else
-	    	{
-	    		retVal.setValue(null);
-		    	if(extendedObs.getObsStartDate() != null)
-		    		retVal.setLow(this.m_cdaDataUtil.createTS(extendedObs.getObsStartDate()));
-		    	if(extendedObs.getObsEndDate() != null)
-		    		retVal.setHigh(this.m_cdaDataUtil.createTS(extendedObs.getObsEndDate()));
-			}
-	    	
-	    	// Null ?
-	    	if(extendedObs.getObsDatePrecision() == 0)
-	    		retVal.setNullFlavor(NullFlavor.Unknown);
-	    	
-	    	// Set precision
-	    	if(retVal.getValue() != null)
-	    		retVal.getValue().setDateValuePrecision(extendedObs.getObsDatePrecision());
-	    	if(retVal.getLow() != null)
-	    		retVal.getLow().setDateValuePrecision(extendedObs.getObsDatePrecision());
-	    	if(retVal.getHigh() != null)
-	    		retVal.getHigh().setDateValuePrecision(extendedObs.getObsDatePrecision());
-		}
-		else if(data instanceof Obs)
+		if(data instanceof Obs)
 		{
 			Obs obs = (Obs)data;
 			retVal.setValue(this.m_cdaDataUtil.createTS(obs.getObsDatetime()));
@@ -300,14 +233,7 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 	 * Get the status code of the object
 	 */
 	protected CS<ActStatus> getStatusCode(BaseOpenmrsData obs) {
-		 if(obs instanceof ExtendedObs)
-	    {
-	    	ExtendedObs extendedObs = (ExtendedObs)obs;
-	    	CS<String> status = this.m_cdaMetadataUtil.getStandardizedCode(extendedObs.getObsStatus(), ActStatus.Aborted.getCodeSystem(), CS.class);
-	    	return new CS<ActStatus>(new ActStatus(status.getCode(), ActStatus.Completed.getCodeSystem()));
-	    }
-		 else
-			 return new CS<ActStatus>(ActStatus.Completed);
+		 return new CS<ActStatus>(ActStatus.Completed);
     }
 	
 	/**
@@ -366,24 +292,7 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
     	retVal.setStatusCode(this.getStatusCode(sourceObs));
     	retVal.setEffectiveTime(this.getEffectiveTime(sourceObs));
     	retVal.setMoodCode(this.getMoodCode(sourceObs, x_ActMoodDocumentObservation.class));
-
-	    // Extended observation stuff
-	    ExtendedObs extendedObs = Context.getService(CdaImportService.class).getExtendedObs(sourceObs.getId());
-	    if(extendedObs != null)
-	    	this.setExtendedObservationProperties(retVal, extendedObs);
-	    
-	    // Replacement?
-	    if(sourceObs.getPreviousVersion() != null)
-	    {
-	    	Reference prevRef = new Reference(x_ActRelationshipExternalReference.RPLC);
-	    	ExternalAct externalAct = new ExternalAct(new CD<String>("OBS"));
-	    	externalAct.setId(SET.createSET(new II(this.m_cdaConfiguration.getObsRoot(), sourceObs.getPreviousVersion().getId().toString())));
-	    	if(sourceObs.getPreviousVersion().getAccessionNumber() != null)
-	    		externalAct.getId().add(this.m_cdaDataUtil.parseIIFromString(sourceObs.getPreviousVersion().getAccessionNumber()));
-	    	prevRef.setExternalActChoice(externalAct);
-	    	retVal.getReference().add(prevRef);
-	    }
-	    	
+	    	    	
 	    return retVal;
 	}
 	
@@ -465,15 +374,6 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 	    if(activeListItem.getStartObs() != null)
 	    {
     		eft.setLow(this.m_cdaDataUtil.createTS(activeListItem.getStartDate()));
-	    	if(activeListItem.getStartObs() != null)
-	    	{
-	    		// Correct the precision of the dates
-	    		ExtendedObs obs = Context.getService(CdaImportService.class).getExtendedObs(activeListItem.getStartObs().getId());
-	    		if(obs != null && obs.getObsDatePrecision() == 0)
-	    			eft.getLow().setNullFlavor(NullFlavor.Unknown);
-	    		else if(obs != null)
-	    			eft.getLow().setDateValuePrecision(obs.getObsDatePrecision());
-	    	}
 	    }
 	    else if(activeListItem.getStartDate() != null)
 	    {
@@ -482,16 +382,6 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 	    if(activeListItem.getStopObs() != null)
 	    {
 	    	eft.setHigh(this.m_cdaDataUtil.createTS(activeListItem.getEndDate()));
-	    	if(activeListItem.getStopObs() != null)
-	    	{
-	    		// Correct the precision of the dates
-	    		ExtendedObs obs = Context.getService(CdaImportService.class).getExtendedObs(activeListItem.getStopObs().getId());
-	    		if(obs != null && obs.getObsDatePrecision() == 0)
-	    			eft.getHigh().setNullFlavor(NullFlavor.Unknown);
-	    		else if(obs != null)
-	    			eft.getHigh().setDateValuePrecision(obs.getObsDatePrecision());
-	    	}
-	    	
 	    }
 
 	    retVal.setEffectiveTime(eft);
@@ -499,9 +389,27 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 	    // Is there a creation time?
     	retVal.getAuthor().add(this.createAuthorPointer(activeListItem));
 	    
-	    retVal.setStatusCode(ConcernEntryProcessor.calculateCurrentStatus(activeListItem));;
+	    retVal.setStatusCode(EntryBuilderImpl.calculateCurrentStatus(activeListItem));;
 	    
 		return retVal;
+    }
+	
+	/**
+	 * Calculate the current status
+	 */
+	public static ActStatus calculateCurrentStatus(ActiveListItem res) {
+		if(res.getStartDate() == null && res.getEndDate() == null)
+			return ActStatus.New;
+		else if(res.getStartDate() != null && res.getEndDate() == null)
+			return ActStatus.Active;
+		else if(res.getVoided() && res.getEndDate() != null)
+			return ActStatus.Aborted;
+		else if(res.getVoided() && res.getEndDate() == null)
+			return ActStatus.Suspended;
+		else if(res.getEndDate() != null)
+			return ActStatus.Completed;
+		else
+			return null;
     }
 
 	/**
@@ -512,8 +420,6 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 		SubstanceAdministration retVal = new SubstanceAdministration();
 
 		// Set the mood code
-	    ExtendedObs extendedObs = Context.getService(CdaImportService.class).getExtendedObs(sourceObs.getId());
-
     	retVal.setMoodCode(x_DocumentSubstanceMood.Eventoccurrence);
 	    
 	    retVal.setTemplateId(this.getTemplateIdList(templateIds));
@@ -533,17 +439,6 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
     	//retVal.setStatusCode(this.getStatusCode(sourceObs));
 		retVal.setStatusCode(ActStatus.Completed);
     	
-	    // Effective time and extended observation properties
-	    if(extendedObs != null)
-	    {
-	    	if(extendedObs.getObsRepeatNumber() != null)
-	    		retVal.setRepeatNumber(new INT(extendedObs.getObsRepeatNumber()));
-	    	
-	    	// Set times
-	    	effectiveTimePeriod = this.getEffectiveTime(extendedObs);
-	    	effectiveTimeInstant.setValue(effectiveTimePeriod.getValue());
-	    }
-	    
 	    // Now sub-observations
 	    Set<Obs> componentObs = sourceObs.getGroupMembers();
 	    
@@ -571,25 +466,16 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 	    			else if(retVal.getText() == null)
 	    				retVal.setText(new ED(component.getValueText()));
 	    		case CdaHandlerConstants.CONCEPT_ID_MEDICATION_START_DATE:
-	    			if(extendedObs == null)
-	    			{
-	    				effectiveTimePeriod.setLow(this.m_cdaDataUtil.createTS(component.getValueDate()));
-	    				effectiveTimePeriod.getLow().setDateValuePrecision(TS.DAY);
-	    			}
+    				effectiveTimePeriod.setLow(this.m_cdaDataUtil.createTS(component.getValueDatetime()));
+    				effectiveTimePeriod.getLow().setDateValuePrecision(TS.DAY);
 	    			break;
 	    		case CdaHandlerConstants.CONCEPT_ID_MEDICATION_STOP_DATE:
-	    			if(extendedObs == null)
-	    			{
-	    				effectiveTimePeriod.setHigh(this.m_cdaDataUtil.createTS(component.getValueDate()));
-	    				effectiveTimePeriod.getHigh().setDateValuePrecision(TS.DAY);
-	    			}
+    				effectiveTimePeriod.setHigh(this.m_cdaDataUtil.createTS(component.getValueDatetime()));
+    				effectiveTimePeriod.getHigh().setDateValuePrecision(TS.DAY);
 	    			break;
 	    		case CdaHandlerConstants.CONCEPT_ID_IMMUNIZATION_DATE:
-	    			if(extendedObs == null)
-	    			{
-	    				effectiveTimeInstant.setValue(this.m_cdaDataUtil.createTS(component.getValueDate()));
-	    				effectiveTimeInstant.getValue().setDateValuePrecision(TS.DAY);
-	    			}
+    				effectiveTimeInstant.setValue(this.m_cdaDataUtil.createTS(component.getValueDatetime()));
+    				effectiveTimeInstant.getValue().setDateValuePrecision(TS.DAY);
 	    			break;
 	    			
 	    		case CdaHandlerConstants.CONCEPT_ID_MEDICATION_DRUG:
@@ -635,15 +521,6 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 	    			supplyRelationship.setClinicalStatement(supply);
 	    			retVal.getEntryRelationship().add(supplyRelationship);
 	    			
-	    			// Obs for processing extended properties
-	    			ExtendedObs supplyExtended = Context.getService(CdaImportService.class).getExtendedObs(component.getId());
-	    			if(supplyExtended != null)
-	    			{
-	    				if(supplyExtended.getObsRepeatNumber() != null)
-	    					supply.setRepeatNumber(new INT(supplyExtended.getObsRepeatNumber()));
-	    		    	if(supplyExtended.getObsMood() != null)
-	    		    		supply.setMoodCode(this.m_cdaMetadataUtil.getStandardizedCode(supplyExtended.getObsMood(), x_ActMoodDocumentObservation.Definition.getCodeSystem(), CS.class));
-	    			}
 	    			
 	    		    // Identifiers
 	    			retVal.setId(this.getIdentifierList(sourceObs));
@@ -660,16 +537,14 @@ public abstract class EntryBuilderImpl implements EntryBuilder {
 	    					case CdaHandlerConstants.CONCEPT_ID_DATE_OF_EVENT:
 	    						if(supply.getPerformer().size() == 0)
 	    							supply.getPerformer().add(new Performer2());
-	    						supply.getPerformer().get(0).setTime(this.m_cdaDataUtil.createTS(supplyComponent.getValueDate()));
+	    						supply.getPerformer().get(0).setTime(this.m_cdaDataUtil.createTS(supplyComponent.getValueDatetime()));
 	    						supply.getPerformer().get(0).getTime().getValue().setDateValuePrecision(TS.DAY);
 	    						break;
 	    					case CdaHandlerConstants.CONCEPT_ID_PROVIDER_NAME:
 	    						if(supply.getPerformer().size() == 0)
 	    							supply.getPerformer().add(new Performer2());
 	    						// Get the provider
-	    						Provider provider = Context.getProviderService().getProviderByIdentifier(supplyComponent.getValueText());
-	    						if(provider != null)
-	    							supply.getPerformer().get(0).setAssignedEntity(this.m_cdaDataUtil.createAssignedEntity(provider));
+    							supply.getPerformer().get(0).setAssignedEntity(this.m_cdaDataUtil.createAssignedEntity(supplyComponent.getPerson()));
 								break;
 	    					case CdaHandlerConstants.CONCEPT_ID_MEDICATION_DISPENSED:
 	    						if(supply.getQuantity() == null)

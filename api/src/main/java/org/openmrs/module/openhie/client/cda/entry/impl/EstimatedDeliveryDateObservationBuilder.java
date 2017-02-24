@@ -1,21 +1,16 @@
 package org.openmrs.module.openhie.client.cda.entry.impl;
 
 import java.util.Arrays;
-import java.util.Calendar;
 
 import org.marc.everest.datatypes.BL;
-import org.marc.everest.datatypes.II;
-import org.marc.everest.datatypes.TS;
 import org.marc.everest.datatypes.generic.CD;
-import org.marc.everest.datatypes.generic.LIST;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.ClinicalStatement;
-import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Entry;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.EntryRelationship;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Observation;
 import org.marc.everest.rmim.uv.cdar2.vocabulary.x_ActRelationshipEntryRelationship;
 import org.openmrs.BaseOpenmrsData;
 import org.openmrs.Obs;
-import org.openmrs.module.shr.cdahandler.CdaHandlerConstants;
+import org.openmrs.module.openhie.client.CdaHandlerConstants;
 
 /**
  * Estimated delivery date builder
@@ -29,9 +24,9 @@ public class EstimatedDeliveryDateObservationBuilder extends EntryBuilderImpl {
 	 */
 	public Observation generate(Obs estimatedDeliveryDateObs, Obs lastMenstrualPeriodObs) {
 		
-		if(estimatedDeliveryDateObs.getValueDate() == null)
+		if(estimatedDeliveryDateObs.getValueDatetime() == null)
 			throw new IllegalArgumentException("estimatedDeliveryDateObs must carry Date value");
-		else if(lastMenstrualPeriodObs.getValueDate() == null)
+		else if(lastMenstrualPeriodObs.getValueDatetime() == null)
 			throw new IllegalArgumentException("lastMenstrualPeriodObs must carry Date value");
 		
 		Observation deliveryDateObs = super.createObservation(Arrays.asList(CdaHandlerConstants.ENT_TEMPLATE_SIMPLE_OBSERVATION),

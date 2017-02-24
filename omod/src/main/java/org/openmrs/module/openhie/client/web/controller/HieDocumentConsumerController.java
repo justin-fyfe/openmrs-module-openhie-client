@@ -1,6 +1,5 @@
 package org.openmrs.module.openhie.client.web.controller;
 
-import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -8,19 +7,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.marc.everest.formatters.interfaces.IXmlStructureFormatter;
-import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.ClinicalDocument;
 import org.openmrs.Patient;
-import org.openmrs.Visit;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.openhie.client.api.HealthInformationExchangeService;
-import org.openmrs.module.openhie.client.exception.HealthInformationExchangeException;
+import org.openmrs.module.openhie.client.configuration.CdaHandlerConfiguration;
 import org.openmrs.module.openhie.client.hie.model.DocumentInfo;
-import org.openmrs.module.openhie.client.web.model.DocumentModel;
-import org.openmrs.module.shr.cdahandler.CdaImporter;
-import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
-import org.openmrs.module.shr.cdahandler.everest.EverestUtil;
-import org.openmrs.module.shr.cdahandler.exception.DocumentImportException;
 import org.openmrs.web.controller.PortletController;
 import org.springframework.transaction.annotation.Transactional;
 

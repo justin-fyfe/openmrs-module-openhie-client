@@ -1,13 +1,9 @@
 package org.openmrs.module.openhie.client.cda.document;
 
-import java.util.List;
-
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.ClinicalDocument;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Section;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
-import org.openmrs.Provider;
-import org.openmrs.RelationshipType;
 
 /**
  * Represents a document builder which can construct a clinical document of a particular type

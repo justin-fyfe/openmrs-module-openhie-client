@@ -46,17 +46,17 @@ import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.PatientIdentifier;
 import org.openmrs.PatientIdentifierType;
+import org.openmrs.Person;
 import org.openmrs.PersonAddress;
 import org.openmrs.PersonAttribute;
 import org.openmrs.PersonAttributeType;
 import org.openmrs.PersonName;
-import org.openmrs.Provider;
 import org.openmrs.Relationship;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.openhie.client.configuration.CdaHandlerConfiguration;
 import org.openmrs.module.openhie.client.configuration.HealthInformationExchangeConfiguration;
 import org.openmrs.module.openhie.client.exception.HealthInformationExchangeException;
 import org.openmrs.module.openhie.client.hie.model.DocumentInfo;
-import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.app.Connection;
@@ -688,14 +688,6 @@ public final class MessageUtil {
 		Date lastEncounter = new Date(0),
 				firstEncounter = new Date();
 		
-		if(info.getRelatedEncounter() != null)
-			for(Obs el : info.getRelatedEncounter().getObs())
-			{
-				if(el.getObsDatetime().before(firstEncounter))
-					firstEncounter = el.getEncounter().getVisit().getStartDatetime();
-				if(el.getObsDatetime().after(lastEncounter))
-					lastEncounter = el.getEncounter().getVisit().getStopDatetime();
-			}
 		
 		TS firstEncounterTs = CdaDataUtil.getInstance().createTS(firstEncounter),
 				lastEncounterTs = CdaDataUtil.getInstance().createTS(lastEncounter),
@@ -796,14 +788,14 @@ public final class MessageUtil {
 		// Add author
 		List<String> authors = new ArrayList<String>();
 
-		for(Provider pvdr : info.getAuthors())
+		for(Person pvdr : info.getAuthors())
 		{
 			ClassificationType authorClass = new ClassificationType();
 			authorClass.setClassificationScheme(XDSConstants.UUID_XDSDocumentEntry_author);
 			authorClass.setClassifiedObject(oddRegistryObject.getId());
 			authorClass.setId(String.format("Classification_%s", UUID.randomUUID().toString()));
 			
-			String authorText = String.format("%s^%s^%s^^^^^^&%s&ISO", pvdr.getId(), pvdr.getPerson().getFamilyName(), pvdr.getPerson().getGivenName(), this.m_cdaConfiguration.getProviderRoot());
+			String authorText = String.format("%s^%s^%s^^^^^^&%s&ISO", pvdr.getId(), pvdr.getFamilyName(), pvdr.getGivenName(), this.m_cdaConfiguration.getProviderRoot());
 			if(authors.contains(authorText))
 				continue;
 			else

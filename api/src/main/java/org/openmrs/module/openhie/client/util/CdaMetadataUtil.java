@@ -15,16 +15,12 @@ import org.marc.everest.datatypes.generic.CV;
 import org.marc.everest.datatypes.generic.SET;
 import org.openmrs.Concept;
 import org.openmrs.ConceptMap;
-import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.Location;
-import org.openmrs.LocationAttribute;
-import org.openmrs.Provider;
-import org.openmrs.ProviderAttribute;
-import org.openmrs.Visit;
-import org.openmrs.VisitAttribute;
+import org.openmrs.Person;
+import org.openmrs.PersonAttribute;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
-import org.openmrs.module.shr.cdahandler.processor.util.OpenmrsConceptUtil;
+import org.openmrs.module.openhie.client.CdaHandlerConstants;
+import org.openmrs.module.openhie.client.configuration.CdaHandlerConfiguration;
 
 /**
  * The On-Demand document metadata util
@@ -40,7 +36,6 @@ public final class CdaMetadataUtil {
 	
 	// Get the ODD service
 	private final CdaHandlerConfiguration m_cdaConfiguration = CdaHandlerConfiguration.getInstance();
-	private final OpenmrsConceptUtil m_conceptUtil = OpenmrsConceptUtil.getInstance();
 	
 	
 	/**
@@ -64,31 +59,10 @@ public final class CdaMetadataUtil {
 	}
 	
 	/**
-	 * Get the specified visit attribute
-	 */
-	public VisitAttribute getVisitAttribute(Visit visit, String attributeName)
-	{
-		for(VisitAttribute att : visit.getActiveAttributes())
-			if(att.getAttributeType().getName().equals(attributeName))
-				return att;
-		return null;
-	}
-	
-	/**
-	 * Get a location attribute
-	 */
-	public LocationAttribute getLocationAttribute(Location location, String attributeName) {
-		for(LocationAttribute att : location.getActiveAttributes())
-			if(att.getAttributeType().getName().equals(attributeName))
-				return att;
-		return null;
-    }
-
-	/**
 	 * Get the provider attribute
 	 */
-	public ProviderAttribute getProviderAttribute(Provider pvdr, String attributeName) {
-		for(ProviderAttribute att : pvdr.getActiveAttributes())
+	public PersonAttribute getProviderAttribute(Person pvdr, String attributeName) {
+		for(PersonAttribute att : pvdr.getActiveAttributes())
 			if(att.getAttributeType().getName().equals(attributeName))
 				return att;
 		return null;
@@ -105,8 +79,14 @@ public final class CdaMetadataUtil {
 	        	retVal.setNullFlavor(NullFlavor.NoInformation);
 	        	return retVal;
 	        }
+	        else
+	        {
+	        	retVal = clazz.newInstance();
+	        	retVal.setNullFlavor(NullFlavor.Other);
+	        }
+	        	
 	        // First, we need to find the reference term that represents the most applicable
-	        Queue<ConceptReferenceTerm> preferredCodes = new ArrayDeque<ConceptReferenceTerm>(),
+	        /*Queue<ConceptReferenceTerm> preferredCodes = new ArrayDeque<ConceptReferenceTerm>(),
 	        		equivalentCodes = new ArrayDeque<ConceptReferenceTerm>(),
     				narrowerCodes = new ArrayDeque<ConceptReferenceTerm>();
 	        
@@ -153,9 +133,10 @@ public final class CdaMetadataUtil {
 	        }
 	        else
 	        	retVal = this.createCode(preferredTerm, clazz);
-        	
+        	*/
 	        if(retVal instanceof CV)
 	        {
+		        ((CV<?>)retVal).setCodeSystem(targetCodeSystem);
 	        	if(value.getPreferredName(Context.getLocale()) != null)
 	    			((CV<?>)retVal).setOriginalText(new ED(value.getPreferredName(Context.getLocale()).getName(), null));
 	        	else if(value.getName() != null)
@@ -169,26 +150,9 @@ public final class CdaMetadataUtil {
         	if(retVal instanceof CE)
         	{
         		SET<CD<?>> translations = new SET<CD<?>>();
-		        while(preferredCodes.peek() != null)
-		        {
-		        	preferredTerm = preferredCodes.poll();
-		        	CD<?> trans = this.createCode(preferredTerm, CD.class);
-	        		if(trans != null)
-	        			translations.add(trans);
-		        }
 
-		        // Fallback to others if we're going for broke
-		        if(retVal.isNull()) 
-		        	while(equivalentCodes.peek() != null)
-		        	{
-		        		preferredTerm = equivalentCodes.poll();
-		        		
-		        		// Does the equivalent code have an oid?
-		        		CD<?> trans = this.createCode(preferredTerm, CD.class);
-		        		if(trans != null)
-		        			translations.add(trans);
-		        	}
-		        
+        		translations.add(this.createCode(value, CD.class));
+        		
 		        // Add translations if any
 		        if(!translations.isEmpty())
 		        	((CE) retVal).setTranslation(translations);
@@ -206,33 +170,15 @@ public final class CdaMetadataUtil {
 	/**
 	 * Create the actual code data from the referenceTerm
 	 */
-	private <T extends CS> T createCode(ConceptReferenceTerm referenceTerm, Class<T> clazz) {
+	
+	private <T extends CS> T createCode(Concept term, Class<T> clazz) {
 		try
 		{
 			T retVal = clazz.newInstance();
-	    	retVal.setCode(referenceTerm.getCode());
+	    	retVal.setCode(term.getId().toString());
 	    	if(retVal instanceof CV)
 	    	{
-	    		
-	    		if(referenceTerm.getDescription() == null)
-	    			((CV<?>)retVal).setDisplayName(referenceTerm.getName());
-	    		else
-	    			((CV<?>)retVal).setDisplayName(referenceTerm.getDescription());
-	    		((CV<?>)retVal).setCodeSystemName(referenceTerm.getConceptSource().getName());
-	    		
-	    		String codeSystemHl7 = referenceTerm.getConceptSource().getHl7Code();
-	    		if(codeSystemHl7 != null && II.isRootOid(new II(codeSystemHl7)))
-    			{
-    				((CV<?>)retVal).setCodeSystem(this.m_conceptUtil.mapConceptSourceNameToOid(referenceTerm.getConceptSource().getHl7Code()));
-    			}
-	    		else
-	    		{
-	    			codeSystemHl7 = this.m_conceptUtil.mapConceptSourceNameToOid(referenceTerm.getConceptSource().getName());
-	    			if(II.isRootOid(new II(codeSystemHl7)))
-	    				((CV<?>)retVal).setCodeSystem(codeSystemHl7);
-	    			else 
-	    				return null;
-	    		}
+	    		((CV<?>)retVal).setCodeSystem(CdaHandlerConstants.CODE_SYSTEM_CIEL);
 	    	}
 	    	
 	    	return retVal;
@@ -243,5 +189,6 @@ public final class CdaMetadataUtil {
 			return null;
 		}
     }
+    
 	
 }

@@ -5,14 +5,9 @@ import java.util.Calendar;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.marc.everest.datatypes.BL;
-import org.marc.everest.datatypes.II;
-import org.marc.everest.datatypes.NullFlavor;
-import org.marc.everest.datatypes.SD;
 import org.marc.everest.datatypes.TS;
 import org.marc.everest.datatypes.generic.CD;
 import org.marc.everest.datatypes.generic.IVL;
-import org.marc.everest.datatypes.generic.LIST;
-import org.marc.everest.datatypes.generic.SET;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Act;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.ClinicalStatement;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.EntryRelationship;
@@ -24,12 +19,8 @@ import org.marc.everest.rmim.uv.cdar2.vocabulary.x_ActRelationshipEntryRelations
 import org.marc.everest.rmim.uv.cdar2.vocabulary.x_DocumentActMood;
 import org.openmrs.BaseOpenmrsData;
 import org.openmrs.Obs;
-import org.openmrs.activelist.ActiveListItem;
 import org.openmrs.activelist.Problem;
-import org.openmrs.activelist.ProblemModifier;
-import org.openmrs.module.shr.cdahandler.CdaHandlerConstants;
-import org.openmrs.web.dwr.ListItem;
-import org.openmrs.web.dwr.ProblemListItem;
+import org.openmrs.module.openhie.client.CdaHandlerConstants;
 
 public class ProblemConcernEntryBuilder extends EntryBuilderImpl {
 

@@ -20,10 +20,7 @@
 	<require_version>${openMRSVersion}</require_version>
 	
 	<require_modules>
-		<require_module version="1.0.0">
-			org.openmrs.module.shr-atna
-		</require_module>
-																		
+												
 	</require_modules>
 
 	<mappingFiles>

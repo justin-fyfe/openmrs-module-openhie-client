@@ -67,20 +67,17 @@ import org.openmrs.ConceptDatatype;
 import org.openmrs.ConceptNumeric;
 import org.openmrs.ImplementationId;
 import org.openmrs.Location;
-import org.openmrs.LocationAttribute;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.PatientIdentifier;
 import org.openmrs.PersonAddress;
 import org.openmrs.PersonAttribute;
 import org.openmrs.PersonName;
-import org.openmrs.Provider;
 import org.openmrs.Relationship;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.openhie.client.CdaHandlerConstants;
+import org.openmrs.module.openhie.client.configuration.CdaHandlerConfiguration;
 import org.openmrs.module.openhie.client.configuration.HealthInformationExchangeConfiguration;
-import org.openmrs.module.shr.cdahandler.CdaHandlerConstants;
-import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
-import org.openmrs.module.shr.cdahandler.processor.util.OpenmrsConceptUtil;
 import org.openmrs.util.OpenmrsConstants;
 
 /**
@@ -96,7 +93,6 @@ public final class CdaDataUtil {
 	// Cda Handler Configuration
 	private final CdaHandlerConfiguration m_cdaConfiguration = CdaHandlerConfiguration.getInstance();
 	private final CdaMetadataUtil m_metaDataUtil = CdaMetadataUtil.getInstance();
-	private final OpenmrsConceptUtil m_conceptUtil = OpenmrsConceptUtil.getInstance();
 	private final HealthInformationExchangeConfiguration m_configuration = HealthInformationExchangeConfiguration.getInstance();
 	
 	// NOK codes
@@ -183,7 +179,7 @@ public final class CdaDataUtil {
 	 * Create an assigned entity from the specified provider
 	 */
 	@SuppressWarnings("unchecked")
-    public AssignedEntity createAssignedEntity(Provider pvdr) {
+    public AssignedEntity createAssignedEntity(org.openmrs.Person pvdr) {
 		
 		AssignedEntity retVal = new AssignedEntity();
 		
@@ -193,15 +189,15 @@ public final class CdaDataUtil {
 		));
 
 		// Telecoms
-		retVal.setTelecom(this.createTelecomSet(pvdr.getPerson()));
+		retVal.setTelecom(this.createTelecomSet(pvdr));
 		
 		// Get the address
-		retVal.setAddr(this.createAddressSet(pvdr.getPerson()));
+		retVal.setAddr(this.createAddressSet(pvdr));
 		
 		// Get names
-		retVal.setAssignedPerson(new Person(this.createNameSet(pvdr.getPerson())));
+		retVal.setAssignedPerson(new Person(this.createNameSet(pvdr)));
 		
-		PersonAttribute orgAttribute = pvdr.getPerson().getAttribute(CdaHandlerConstants.ATTRIBUTE_NAME_ORGANIZATION);
+		PersonAttribute orgAttribute = pvdr.getAttribute(CdaHandlerConstants.ATTRIBUTE_NAME_ORGANIZATION);
 		if(orgAttribute != null)
 			retVal.setRepresentedOrganization(this.createOrganization((Location)orgAttribute.getHydratedObject()));
 
@@ -313,33 +309,33 @@ public final class CdaDataUtil {
 	/**
 	 * Creates an assigned author
 	 */
-	public AssignedAuthor createAuthorPerson(Provider pvdr) {
+	public AssignedAuthor createAuthorPerson(org.openmrs.Person pvdr) {
 		AssignedAuthor retVal = new AssignedAuthor();
 		
 		// Get the ID
 		retVal.setId(SET.createSET(
 			new II(this.m_cdaConfiguration.getProviderRoot(), pvdr.getId().toString()),
-			new II(this.m_cdaConfiguration.getUserRoot(), Context.getUserService().getUsersByPerson(pvdr.getPerson(), false).get(0).getId().toString())
+			new II(this.m_cdaConfiguration.getUserRoot(), Context.getUserService().getUsersByPerson(pvdr, false).get(0).getId().toString())
 		));
 
 		
 		// Set telecom
-		if(pvdr.getPerson() != null)
+		if(pvdr != null)
 		{
-			retVal.setTelecom(this.createTelecomSet(pvdr.getPerson()));
+			retVal.setTelecom(this.createTelecomSet(pvdr));
 			
 			// Get the address
-			retVal.setAddr(this.createAddressSet(pvdr.getPerson()));
+			retVal.setAddr(this.createAddressSet(pvdr));
 			
 			// Get names
-			retVal.setAssignedAuthorChoice(new Person(this.createNameSet(pvdr.getPerson())));
+			retVal.setAssignedAuthorChoice(new Person(this.createNameSet(pvdr)));
 			
-			PersonAttribute orgAttribute = pvdr.getPerson().getAttribute(CdaHandlerConstants.ATTRIBUTE_NAME_ORGANIZATION);
+			PersonAttribute orgAttribute = pvdr.getAttribute(CdaHandlerConstants.ATTRIBUTE_NAME_ORGANIZATION);
 			if(orgAttribute != null)
 				retVal.setRepresentedOrganization(this.createOrganization((Location)orgAttribute.getHydratedObject()));
 		}
-		else
-			retVal.setAssignedAuthorChoice(new AuthoringDevice(null, new SC(pvdr.getName()), null, null));
+		//else
+			//retVal.setAssignedAuthorChoice(new AuthoringDevice(null, new SC(pvdr.getName()), null, null));
 		return retVal;
     }
 
@@ -352,9 +348,6 @@ public final class CdaDataUtil {
 		
 		// Identifiers
 		retVal.setId(new SET<II>());
-		LocationAttribute externalId = this.m_metaDataUtil.getLocationAttribute(location, CdaHandlerConstants.ATTRIBUTE_NAME_EXTERNAL_ID);
-		if(externalId != null)
-			retVal.getId().add(this.parseIIFromString(externalId.getValue().toString()));
 		retVal.getId().add(new II(this.m_cdaConfiguration.getLocationRoot(), location.getId().toString()));
 		
 		// Name , etc. ?
@@ -373,9 +366,6 @@ public final class CdaDataUtil {
 			retVal.setAsOrganizationPartOf(new OrganizationPartOf());
 			retVal.getAsOrganizationPartOf().setClassCode(RoleClassPart.Part);
 			retVal.getAsOrganizationPartOf().setId(new SET<II>());
-			externalId = this.m_metaDataUtil.getLocationAttribute(location.getParentLocation(), CdaHandlerConstants.ATTRIBUTE_NAME_EXTERNAL_ID);
-			if(externalId != null)
-				retVal.getAsOrganizationPartOf().getId().add(this.parseIIFromString(externalId.getValue().toString()));
 			retVal.getAsOrganizationPartOf().getId().add(new II(this.m_cdaConfiguration.getLocationRoot(), location.getParentLocation().getId().toString()));
 			
 			if(location.getParentLocation().getRetired())
@@ -472,14 +462,8 @@ public final class CdaDataUtil {
 			retVal.setName(new ON());
 			retVal.getName().getParts().add(new ENXP(shrLocation.getName()));
 			// TODO: Get a root assigned for OpenMRS implementation IDs? Or make the id long enough for an OID
-			LocationAttribute idAttribute = this.m_metaDataUtil.getLocationAttribute(shrLocation, CdaHandlerConstants.ATTRIBUTE_NAME_EXTERNAL_ID);
-			if(idAttribute != null)
-				retVal.setId(SET.createSET(
-					this.parseIIFromString(idAttribute.getValue().toString()),
-					new II(this.m_cdaConfiguration.getLocationRoot(), shrLocation.getId().toString())));
-			else
-				retVal.setId(SET.createSET(
-					new II(this.m_cdaConfiguration.getLocationRoot(), shrLocation.getId().toString())));
+			retVal.setId(SET.createSET(
+				new II(this.m_cdaConfiguration.getLocationRoot(), shrLocation.getId().toString())));
 
 			retVal.setAddr(this.createAddressSet(shrLocation));
 			// TODO
@@ -527,8 +511,8 @@ public final class CdaDataUtil {
 		
 		// Marital status?
 		PersonAttribute civilStatusCode = patient.getAttribute(CdaHandlerConstants.ATTRIBUTE_NAME_CIVIL_STATUS);
-		if(civilStatusCode != null)
-			hl7Patient.setMaritalStatusCode(this.m_metaDataUtil.getStandardizedCode((Concept)civilStatusCode.getHydratedObject(), CdaHandlerConstants.CODE_SYSTEM_MARITAL_STATUS, CE.class));
+		//if(civilStatusCode != null)
+		//	hl7Patient.setMaritalStatusCode(this.m_metaDataUtil.getStandardizedCode((Concept)civilStatusCode.getHydratedObject(), CdaHandlerConstants.CODE_SYSTEM_MARITAL_STATUS, CE.class));
 			
 		// Names
 		hl7Patient.setName(this.createNameSet(patient));
@@ -571,7 +555,7 @@ public final class CdaDataUtil {
 		
 		retVal.setTypeCode(ParticipationType.IND);
 		// Now we want to expose the related person
-		retVal.setTime(this.createTS(relatedPerson.getStartDate()), this.createTS(relatedPerson.getEndDate()));
+		retVal.setTime(this.createTS(relatedPerson.getDateCreated()), null);
 		if(retVal.getTime().getLow().isNull() && retVal.getTime().getHigh().isNull()) // collapse null flavor
 			retVal.getTime().setNullFlavor(NullFlavor.NoInformation);
 		
@@ -694,8 +678,8 @@ public final class CdaDataUtil {
 		String conceptDatatypeUuid = obs.getConcept().getDatatype().getUuid();
 		if(obs.getValueBoolean() != null)
 			return new BL(obs.getValueAsBoolean());
-		else if(obs.getValueCoded() != null)
-			return this.m_metaDataUtil.getStandardizedCode(obs.getValueCoded(), null, CD.class);
+		//else if(obs.getValueCoded() != null)
+		//	return this.m_metaDataUtil.getStandardizedCode(obs.getValueCoded(), null, CD.class);
 		else if(obs.getValueComplex() != null)
 		{
 			obs = Context.getObsService().getComplexObs(obs.getId(), null);
@@ -719,13 +703,13 @@ public final class CdaDataUtil {
 			return retVal;
 			
 		}
-		else if(obs.getValueDate() != null)
+/*		else if(obs.getvaluea() != null)
 		{
 			
 			TS retVal = this.createTS(obs.getValueDate());
 			retVal.setDateValuePrecision(TS.DAY);
 			return retVal;
-		}
+		}*/
 		else if(obs.getValueDatetime() != null)
 			return this.createTS(obs.getValueDatetime());
 		else if(ConceptDatatype.N_A_UUID.equals(conceptDatatypeUuid)) // This is most likely an indicator!
@@ -742,7 +726,7 @@ public final class CdaDataUtil {
 					return new REAL(obs.getValueNumeric());
 			}
 			else
-				return new PQ(BigDecimal.valueOf(obs.getValueNumeric()), this.m_conceptUtil.getUcumUnitCode(numConcept));
+				return new PQ(BigDecimal.valueOf(obs.getValueNumeric()), numConcept.getUnits());
 		}
 		else if(obs.getValueText() != null)
 		{

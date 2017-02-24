@@ -21,10 +21,11 @@ import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Section;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
-import org.openmrs.Provider;
+import org.openmrs.Person;
 import org.openmrs.activelist.Allergy;
 import org.openmrs.activelist.Problem;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.openhie.client.CdaHandlerConstants;
 import org.openmrs.module.openhie.client.api.HealthInformationExchangeService;
 import org.openmrs.module.openhie.client.cda.document.DocumentBuilder;
 import org.openmrs.module.openhie.client.cda.section.impl.ActiveProblemsSectionBuilder;
@@ -33,12 +34,11 @@ import org.openmrs.module.openhie.client.cda.section.impl.AntepartumFlowsheetPan
 import org.openmrs.module.openhie.client.cda.section.impl.EstimatedDeliveryDateSectionBuilder;
 import org.openmrs.module.openhie.client.cda.section.impl.MedicationsSectionBuilder;
 import org.openmrs.module.openhie.client.cda.section.impl.VitalSignsSectionBuilder;
+import org.openmrs.module.openhie.client.configuration.CdaHandlerConfiguration;
+import org.openmrs.module.openhie.client.everest.EverestUtil;
 import org.openmrs.module.openhie.client.hie.model.DocumentInfo;
 import org.openmrs.module.openhie.client.util.CdaMetadataUtil;
 import org.openmrs.module.openhie.client.web.model.DocumentModel;
-import org.openmrs.module.shr.cdahandler.CdaHandlerConstants;
-import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
-import org.openmrs.module.shr.cdahandler.everest.EverestUtil;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -266,13 +266,13 @@ public class HieDocumentExportController {
 			docInfo.setPatient(Context.getPatientService().getPatient(Integer.parseInt(pid)));
 			docInfo.setTitle(docModel.getDocument().getTitle().getValue());
 
-			List<Provider> provs = new ArrayList<Provider>();
+			List<Person> provs = new ArrayList<Person>();
 			for(Author aut : docModel.getDocument().getAuthor())
 			{
 				// Load the author
 				for(II id : aut.getAssignedAuthor().getId())
 					if(id.getRoot().equals(CdaHandlerConfiguration.getInstance().getProviderRoot()))
-						provs.add(Context.getProviderService().getProvider(Integer.parseInt(id.getExtension())));
+						provs.add(Context.getPersonService().getPerson(Integer.parseInt(id.getExtension())));
 			}
 			docInfo.setAuthors(provs);
 			

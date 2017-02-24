@@ -10,7 +10,7 @@ import org.dcm4chee.xds2.infoset.rim.RegistryObjectType;
 import org.dcm4chee.xds2.infoset.util.InfosetUtil;
 import org.openmrs.Patient;
 import org.openmrs.PatientIdentifier;
-import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
+import org.openmrs.module.openhie.client.configuration.CdaHandlerConfiguration;
 
 /**
  * Xds Utility class

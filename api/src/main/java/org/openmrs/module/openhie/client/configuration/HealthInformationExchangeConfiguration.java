@@ -6,7 +6,6 @@ import java.util.Map;
 import org.marc.everest.formatters.FormatterUtil;
 import org.openmrs.GlobalProperty;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
 
 /**
  * Health information exchange configuration

@@ -2,18 +2,14 @@ package org.openmrs.module.openhie.client.cda.section.impl;
 
 import org.marc.everest.datatypes.BL;
 import org.marc.everest.datatypes.II;
-import org.marc.everest.datatypes.generic.CD;
 import org.marc.everest.datatypes.generic.CE;
 import org.marc.everest.datatypes.generic.LIST;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Entry;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Section;
 import org.marc.everest.rmim.uv.cdar2.vocabulary.x_ActRelationshipEntry;
-import org.openmrs.ConceptNumeric;
 import org.openmrs.Obs;
-import org.openmrs.module.openhie.client.cda.entry.impl.AntepartumFlowsheetBatteryEntryBuilder;
-import org.openmrs.module.openhie.client.cda.entry.impl.SimpleObservationEntryBuilder;
+import org.openmrs.module.openhie.client.CdaHandlerConstants;
 import org.openmrs.module.openhie.client.cda.entry.impl.VitalSignsBatteryEntryBuilder;
-import org.openmrs.module.shr.cdahandler.CdaHandlerConstants;
 
 /**
  * Vital signs section builder

@@ -10,10 +10,8 @@ import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Entry;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Section;
 import org.marc.everest.rmim.uv.cdar2.vocabulary.x_ActRelationshipEntry;
 import org.openmrs.activelist.Allergy;
-import org.openmrs.activelist.Problem;
+import org.openmrs.module.openhie.client.CdaHandlerConstants;
 import org.openmrs.module.openhie.client.cda.entry.impl.AllergyConcernEntryBuilder;
-import org.openmrs.module.openhie.client.cda.entry.impl.ProblemConcernEntryBuilder;
-import org.openmrs.module.shr.cdahandler.CdaHandlerConstants;
 
 /**
  * Generates allergies

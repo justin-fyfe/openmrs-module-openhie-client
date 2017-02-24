@@ -11,8 +11,8 @@ import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Entry;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Section;
 import org.marc.everest.rmim.uv.cdar2.vocabulary.x_ActRelationshipEntry;
 import org.openmrs.Obs;
+import org.openmrs.module.openhie.client.CdaHandlerConstants;
 import org.openmrs.module.openhie.client.cda.entry.impl.MedicationEntryBuilder;
-import org.openmrs.module.shr.cdahandler.CdaHandlerConstants;
 
 /**
  * Section builder for medications

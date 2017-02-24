@@ -10,8 +10,8 @@ import org.openmrs.PatientIdentifier;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.openhie.client.api.HealthInformationExchangeService;
+import org.openmrs.module.openhie.client.configuration.CdaHandlerConfiguration;
 import org.openmrs.module.openhie.client.exception.HealthInformationExchangeException;
-import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
 import org.springframework.aop.AfterReturningAdvice;
 
 /**
@@ -28,7 +28,8 @@ public class PatientUpdateAdvice implements AfterReturningAdvice {
 	 * @see org.springframework.aop.AfterReturningAdvice#afterReturning(java.lang.Object, java.lang.reflect.Method, java.lang.Object[], java.lang.Object)
 	 */
 	public void afterReturning(Object returnValue, Method method, Object[] args, Object target) throws Throwable {
-		if(method.getName().equals("savePatient") && target instanceof PatientService)
+		if(method.getName().equals("savePatient") && target instanceof PatientService &&
+				this.m_configuration.getAutoCreatePatients())
 		{
 			log.debug("Sending update to the HIE for new patient data...");
 			try

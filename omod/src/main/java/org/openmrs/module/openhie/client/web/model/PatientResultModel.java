@@ -9,7 +9,7 @@ import org.openmrs.PatientIdentifier;
 import org.openmrs.PersonName;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.openhie.client.api.HealthInformationExchangeService;
-import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
+import org.openmrs.module.openhie.client.configuration.CdaHandlerConfiguration;
 
 /**
  * Represents a result of a patient search 

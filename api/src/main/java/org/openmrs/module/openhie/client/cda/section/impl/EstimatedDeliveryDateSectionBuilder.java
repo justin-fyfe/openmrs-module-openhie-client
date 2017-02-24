@@ -1,25 +1,16 @@
 package org.openmrs.module.openhie.client.cda.section.impl;
 
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Set;
-
 import org.marc.everest.datatypes.BL;
 import org.marc.everest.datatypes.II;
-import org.marc.everest.datatypes.TS;
 import org.marc.everest.datatypes.generic.CE;
 import org.marc.everest.datatypes.generic.LIST;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Entry;
-import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.EntryRelationship;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Observation;
 import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.Section;
 import org.marc.everest.rmim.uv.cdar2.vocabulary.x_ActRelationshipEntry;
-import org.marc.everest.rmim.uv.cdar2.vocabulary.x_ActRelationshipEntryRelationship;
 import org.openmrs.Obs;
-import org.openmrs.module.openhie.client.cda.entry.impl.EntryBuilderImpl;
+import org.openmrs.module.openhie.client.CdaHandlerConstants;
 import org.openmrs.module.openhie.client.cda.entry.impl.EstimatedDeliveryDateObservationBuilder;
-import org.openmrs.module.shr.cdahandler.CdaHandlerConstants;
 
 /**
  * EDD section builder
@@ -51,9 +42,9 @@ public class EstimatedDeliveryDateSectionBuilder extends SectionBuilderImpl {
 	public Section generate(Obs estimatedDeliveryDateObs, Obs lastMenstrualPeriodObs)
 	{
 		
-		if(estimatedDeliveryDateObs.getValueDate() == null)
+		if(estimatedDeliveryDateObs.getValueDatetime() == null)
 			throw new IllegalArgumentException("estimatedDeliveryDateObs must carry Date value");
-		else if(lastMenstrualPeriodObs.getValueDate() == null)
+		else if(lastMenstrualPeriodObs.getValueDatetime() == null)
 			throw new IllegalArgumentException("lastMenstrualPeriodObs must carry Date value");
 		
 		EstimatedDeliveryDateObservationBuilder eddObsBuilder = new EstimatedDeliveryDateObservationBuilder();

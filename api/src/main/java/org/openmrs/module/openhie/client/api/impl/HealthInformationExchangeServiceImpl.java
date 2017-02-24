@@ -1,9 +1,6 @@
 package org.openmrs.module.openhie.client.api.impl;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -11,12 +8,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.transaction.NotSupportedException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dcm4che3.audit.AuditMessage;
-import org.dcm4che3.net.IncompatibleConnectionException;
-import org.dcm4chee.xds2.common.XDSUtil;
-import org.dcm4chee.xds2.common.audit.XDSAudit;
 import org.dcm4chee.xds2.infoset.ihe.ProvideAndRegisterDocumentSetRequestType;
 import org.dcm4chee.xds2.infoset.ihe.RetrieveDocumentSetRequestType;
 import org.dcm4chee.xds2.infoset.ihe.RetrieveDocumentSetRequestType.DocumentRequest;
@@ -24,29 +20,23 @@ import org.dcm4chee.xds2.infoset.ihe.RetrieveDocumentSetResponseType;
 import org.dcm4chee.xds2.infoset.rim.AdhocQueryResponse;
 import org.dcm4chee.xds2.infoset.rim.RegistryResponseType;
 import org.marc.everest.datatypes.II;
-import org.marc.everest.formatters.interfaces.IXmlStructureFormatter;
-import org.marc.everest.rmim.uv.cdar2.pocd_mt000040uv.ClinicalDocument;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.PatientIdentifier;
 import org.openmrs.PersonAddress;
 import org.openmrs.PersonName;
-import org.openmrs.Visit;
 import org.openmrs.api.DuplicateIdentifierException;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.openhie.client.api.HealthInformationExchangeService;
+import org.openmrs.module.openhie.client.configuration.CdaHandlerConfiguration;
 import org.openmrs.module.openhie.client.configuration.HealthInformationExchangeConfiguration;
 import org.openmrs.module.openhie.client.dao.HealthInformationExchangeDao;
 import org.openmrs.module.openhie.client.exception.HealthInformationExchangeException;
 import org.openmrs.module.openhie.client.hie.model.DocumentInfo;
 import org.openmrs.module.openhie.client.util.AuditUtil;
 import org.openmrs.module.openhie.client.util.MessageUtil;
-import org.openmrs.module.openhie.client.util.XdsUtil;
 import org.openmrs.module.shr.atna.api.AtnaAuditService;
-import org.openmrs.module.shr.cdahandler.CdaImporter;
-import org.openmrs.module.shr.cdahandler.configuration.CdaHandlerConfiguration;
-import org.openmrs.module.shr.cdahandler.everest.EverestUtil;
 
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v25.message.QBP_Q21;
@@ -374,26 +364,7 @@ public class HealthInformationExchangeServiceImpl extends BaseOpenmrsService
 	 */
 	public Encounter importDocument(DocumentInfo document) throws HealthInformationExchangeException {
 		
-		try
-		{
-			CdaImporter importer = CdaImporter.getInstance();
-			// Parse the byte stream into a CLinical Document
-			IXmlStructureFormatter formatter = EverestUtil.createFormatter();
-			
-			byte[] documentContent = this.fetchDocument(document);
-			log.debug(String.format("Fetched %s bytes", documentContent.length));
-			ByteArrayInputStream bis = new ByteArrayInputStream(documentContent);
-			log.debug("Starting import of document");
-			Visit visit = importer.processCdaDocument((ClinicalDocument)formatter.parse(bis).getStructure());
-			log.debug("Import complete");
-			
-			return visit.getEncounters().iterator().next();
-		}
-		catch(Exception e)
-		{
-			log.error("Error importing document", e);
-			throw new HealthInformationExchangeException(e);
-		}
+		throw new HealthInformationExchangeException(new NotSupportedException("Document import not supported on OpenMRS 1.8.2"));
 	}
 
 	/**
