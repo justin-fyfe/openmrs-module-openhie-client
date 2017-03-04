@@ -57,6 +57,7 @@ import org.openmrs.module.openhie.client.configuration.CdaHandlerConfiguration;
 import org.openmrs.module.openhie.client.configuration.HealthInformationExchangeConfiguration;
 import org.openmrs.module.openhie.client.exception.HealthInformationExchangeException;
 import org.openmrs.module.openhie.client.hie.model.DocumentInfo;
+import org.openmrs.module.shr.atna.configuration.AtnaConfiguration;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.app.Connection;
@@ -335,8 +336,11 @@ public final class MessageUtil {
         msh.getReceivingFacility().getNamespaceID().setValue("MOH_CAAT"); // Mohawk College of Applied Arts and Technology
         
         ImplementationId implementation = Context.getAdministrationService().getImplementationId();
+        String atnaDevice = AtnaConfiguration.getInstance().getDeviceName();
         if(implementation != null)
 	        msh.getSendingApplication().getNamespaceID().setValue(implementation.getName()); // What goes here?
+        else if(atnaDevice != null)
+	        msh.getSendingApplication().getNamespaceID().setValue(atnaDevice); // What goes here?
         else
         	msh.getSendingApplication().getNamespaceID().setValue("UNNAMEDOPENMRS");
         

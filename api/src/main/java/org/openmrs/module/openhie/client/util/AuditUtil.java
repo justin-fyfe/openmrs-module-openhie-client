@@ -94,8 +94,8 @@ public class AuditUtil {
 		if(implementation == null)
 		{
 			implementation = new ImplementationId();
-			implementation.setName("ANON");
-			implementation.setImplementationId("ANON");
+			implementation.setName(AtnaConfiguration.getInstance().getDeviceName());
+			implementation.setImplementationId(AtnaConfiguration.getInstance().getDeviceName());
 		}
 
 		Location defaultLocation = Context.getLocationService().getDefaultLocation();

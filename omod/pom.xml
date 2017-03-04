@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.openmrs.module</groupId>
 		<artifactId>openhie-client</artifactId>
-		<version>0.1-SNAPSHOT</version>
+		<version>0.5</version>
 	</parent>
 
 	<artifactId>openhie-client-omod</artifactId>

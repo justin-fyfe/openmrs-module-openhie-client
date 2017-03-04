@@ -16,18 +16,18 @@ public final class AtnaConfiguration {
 	// Singleton
 	private static AtnaConfiguration s_instance;
 	
-	private static final String PROP_NAME_JKSTRUST_STORE = "shr-atna.security.trustStore";
-	private static final String PROP_NAME_JKSTRUST_PASS = "shr-atna.security.trustStorePassword";
-	private static final String PROP_NAME_JKSKEY_STORE = "shr-atna.security.keyStore";
-	private static final String PROP_NAME_JKSKEY_PASS = "shr-atna.security.keyStorePassword";
+	private static final String PROP_NAME_JKSTRUST_STORE = "openhie-client.security.trustStore";
+	private static final String PROP_NAME_JKSTRUST_PASS = "openhie-client.security.trustStorePassword";
+	private static final String PROP_NAME_JKSKEY_STORE = "openhie-client.security.keyStore";
+	private static final String PROP_NAME_JKSKEY_PASS = "openhie-client.security.keyStorePassword";
 	private static final String PROP_SHR_ROOT = "shr.id.root";
     public static final String PROP_EPID_ROOT = "shr.id.epidRoot";
 	private static final String PROP_ECID_ROOT = "shr.id.ecidRoot";
-	private static final String PROP_NAME_AR_ENDPOINT = "shr-atna.auditRepository.endpoint";
-	private static final String PROP_NAME_AR_TRANSPORT = "shr-atna.auditRepository.transport";
-	private static final String PROP_NAME_AR_PORT = "shr-atna.auditRepository.port";
-	private static final String PROP_NAME_LOCAL_BIND_ADDR = "shr-atna.auditRepository.localBindAddr";
-	private static final String PROP_NAME_DEV_NAME = "shr-atna.deviceName";
+	private static final String PROP_NAME_AR_ENDPOINT = "openhie-client.auditRepository.endpoint";
+	private static final String PROP_NAME_AR_TRANSPORT = "openhie-client.auditRepository.transport";
+	private static final String PROP_NAME_AR_PORT = "openhie-client.auditRepository.port";
+	private static final String PROP_NAME_LOCAL_BIND_ADDR = "openhie-client.auditRepository.localBindAddr";
+	private static final String PROP_NAME_DEV_NAME = "openhie-client.deviceName";
 	
 	private final String m_localBindAddrDefault = "127.0.0.1";
 	private final String m_trustStoreDefault = "";

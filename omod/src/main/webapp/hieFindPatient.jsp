@@ -55,6 +55,7 @@
 			</tr>
 			<c:forEach var="patient" items="${results}">
 				<tr>
+					
 					<td style="border-bottom:solid 1px #ddd">${patient.identifier }</td>
 					<td style="border-bottom:solid 1px #ddd">${patient.familyName }</td>
 					<td style="border-bottom:solid 1px #ddd">${patient.givenName }</td>

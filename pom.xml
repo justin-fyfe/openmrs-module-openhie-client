@@ -4,7 +4,7 @@
 
 	<groupId>org.openmrs.module</groupId>
 	<artifactId>openhie-client</artifactId>
-	<version>0.1-SNAPSHOT</version>
+	<version>0.5</version>
 	<packaging>pom</packaging>
 	<name>OpenMRS OpenHIE Client Module</name>
 	<description>Allows OpenMRS to interact with the OpenHIE 1.0 core workflows.</description>

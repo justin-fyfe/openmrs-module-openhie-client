@@ -93,6 +93,10 @@ public class PatientResultModel {
     	return ecid;
     }
 
+    public String getEcidRoot() {
+    	return this.m_configuration.getEcidRoot();
+    }
+    
 	/**
 	 * Create a result from the model
 	 */
@@ -109,6 +113,7 @@ public class PatientResultModel {
 		this.dateOfBirth = new SimpleDateFormat("yyyy-MMM-dd").format(result.getBirthdate());
 		for(PatientIdentifier pid : result.getIdentifiers())
 		{
+			
 			log.error(pid.getIdentifierType().getName());
 			if(pid.getIdentifierType().getName().equals(this.m_configuration.getEcidRoot()) ||
 					pid.getIdentifierType().getUuid().equals(this.m_configuration.getEcidRoot()))

@@ -24,8 +24,6 @@
   		    http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 
-	
-	
 	<!-- Services accessible via Context.getService() -->
 	<bean parent="serviceContext">
 		<property name="moduleService">

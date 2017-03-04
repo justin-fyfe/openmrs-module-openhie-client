@@ -30,8 +30,7 @@ public class HieImportPatientController {
 	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public ModelAndView index(ModelMap model,  @RequestParam(value = "ecid") String ecid) {
-		
-		
+
 		if(ecid == null)
 			throw new IllegalArgumentException("ecid must be supplied");
 		

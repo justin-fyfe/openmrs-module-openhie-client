@@ -12,14 +12,14 @@
 
 <form id="importForm" modelAttribute="importPatient" method="post"
 			enctype="multipart/form-data">
-	<div class="boxHeader"><openmrs:message code="Patient.title"/></div>
+	<div class="boxHeader">Import Patient</div>
 	<div class="box$">
 		<table class="personName">
 			<thead>
 				<tr class="patientDemographicsHeaderRow">
-					<th class="patientDemographicsPersonNameHeader"><openmrs:message code="Person.names"/></th>
+					<th class="patientDemographicsPersonNameHeader">Names</th>
 					<openmrs:forEachDisplayAttributeType personType="patient" displayType="viewing" var="attrType">
-						<th class="patientDemographicsPersonAttTypeHeader"><openmrs:message code="PersonAttributeType.${fn:replace(attrType.name, ' ', '')}" text="${attrType.name}"/></th>
+						<th class="patientDemographicsPersonAttTypeHeader">${attrType.name}</th>
 					</openmrs:forEachDisplayAttributeType>
 				</tr>
 			</thead>
@@ -45,7 +45,7 @@
 	
 	<br/>
 	
-	<div class="boxHeader"><openmrs:message code="Person.addresses"/></div>
+	<div class="boxHeader">Addresses:</div>
 	<div class="box">
 		<table class="personAddress">
 			<thead>

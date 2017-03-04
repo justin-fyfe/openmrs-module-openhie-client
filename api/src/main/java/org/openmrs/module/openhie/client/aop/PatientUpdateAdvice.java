@@ -28,8 +28,7 @@ public class PatientUpdateAdvice implements AfterReturningAdvice {
 	 * @see org.springframework.aop.AfterReturningAdvice#afterReturning(java.lang.Object, java.lang.reflect.Method, java.lang.Object[], java.lang.Object)
 	 */
 	public void afterReturning(Object returnValue, Method method, Object[] args, Object target) throws Throwable {
-		if(method.getName().equals("savePatient") && target instanceof PatientService &&
-				this.m_configuration.getAutoCreatePatients())
+		if(method.getName().equals("savePatient") && target instanceof PatientService)
 		{
 			log.debug("Sending update to the HIE for new patient data...");
 			try

@@ -7,7 +7,7 @@
 	<name>${project.parent.name}</name>
 	<version>${project.parent.version}.3</version>
 	<package>${project.parent.groupId}.${project.parent.artifactId}</package>
-	<author>Fyfe Software Inc.</author>
+	<author>Mohawk College</author>
 	<description>
 			${project.parent.description}
 	</description>
@@ -24,7 +24,6 @@
 	</require_modules>
 
 	<mappingFiles>
-		ExtendedOrders.hbm.xml
 	</mappingFiles>
 		
 	<!-- Extensions -->
@@ -72,6 +71,56 @@
 		</description>
 	</globalProperty>
 	/Required Global Properties -->
+		<globalProperty>
+		<property>${project.parent.artifactId}.auditRepository.localBindAddr</property>
+		<defaultValue>127.0.0.1</defaultValue>
+		<description>Identifies the local address to which the Syslog sender is to be bound</description>
+	</globalProperty>
+	<globalProperty>
+		<property>${project.parent.artifactId}.auditRepository.endpoint</property>
+		<defaultValue>127.0.0.1</defaultValue>
+		<description>Identifies the endpoint where SHR's audit should be sent</description>
+	</globalProperty>
+	<globalProperty>
+		<property>${project.parent.artifactId}.auditRepository.transport</property>
+		<defaultValue>audit-udp</defaultValue>
+		<description>Identifies the common name of the protocol used to send audits to the audit repository</description>
+	</globalProperty>
+	<globalProperty>
+		<property>${project.parent.artifactId}.auditRepository.port</property>
+		<defaultValue>514</defaultValue>
+		<description>Identifies the port which the audit repository listens on</description>
+	</globalProperty>
+	<globalProperty>
+		<property>${project.parent.artifactId}.deviceName</property>
+		<defaultValue>OpenSHR</defaultValue>
+		<description>Identifies the local device name to use in audits</description>
+	</globalProperty>
+		<globalProperty>
+		<property>${project.parent.artifactId}.security.trustStore</property>
+		<defaultValue>/usr/share/tomcat/tls/truststore
+		</defaultValue>
+		<description>Identifies the trust store</description>
+	</globalProperty>
+	<globalProperty>
+		<property>${project.parent.artifactId}.security.trustStorePassword</property>
+		<defaultValue>Password
+		</defaultValue>
+		<description>Identifies the trustStore password</description>
+	</globalProperty>
+	<globalProperty>
+		<property>${project.parent.artifactId}.security.keyStore</property>
+		<defaultValue>/usr/share/tomcat/tls/keystore.jks
+		</defaultValue>
+		<description>Identifies the keystore</description>
+	</globalProperty>
+	<globalProperty>
+		<property>${project.parent.artifactId}.security.keyStorePassword</property>
+		<defaultValue>Password
+		</defaultValue>
+		<description>Identifies the keyStore password</description>
+	</globalProperty>
+	
 	<globalProperty>
 		<property>shr-cdahandler.autocreate.concepts</property>
 		<defaultValue>true
