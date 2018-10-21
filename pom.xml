@@ -95,9 +95,26 @@
 
 	<repositories>
 		<repository>
+            <id>dcm4che-repository</id>
+            <name>DCM4CHE Public Maven Repository</name>
+            <url>http://www.dcm4che.org/maven2</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+		<repository>
 			<id>openmrs-repo</id>
 			<name>OpenMRS Nexus Repository</name>
 			<url>http://mavenrepo.openmrs.org/nexus/content/repositories/public</url>
+		</repository>
+		<repository>
+			<id>marc-te</id>
+			<name>TECH EXCHANGE</name>
+			<url>http://te.marc-hi.ca/mvn</url>
 		</repository>
 	</repositories>
 
